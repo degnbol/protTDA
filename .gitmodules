@@ -1,0 +1,3 @@
+[submodule "tools/hyperTDA"]
+	path = tools/hyperTDA
+	url = https://github.com/degnbol/hyperTDA
