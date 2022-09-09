@@ -1,2 +1,2 @@
 #!/usr/bin/env zsh
-$0:h/CASP14.sh
+$0:h/CASP14/RUNME.sh
