@@ -14,6 +14,9 @@ barcodes and representatives to .json files in OUTDIR/.
     help = "Provide the typical distance between points (interpolation distance 
     choice) in order to improve performance. If provided, filtration time will 
     increment by the given value."
+    "--H2", "-2"
+    action = :store_true
+    help = "Calculate H2 as well. Default=only calculate H1."
 end
 
 # if run as script
@@ -35,12 +38,13 @@ using CSV, DataFrames
 using NPZ
 using DelimitedFiles
 using JSON
-using .Threads: @threads
 
 if length(ARGS) == 2 && isdir(ARGS[1])
     indir, outdir = ARGS
-    fnames = joinpath.(indir, readdir(indir))
+    fnames = readdir(indir; join=true)
+    println(length(fnames), " files found in $indir")
 else
+    @assert length(ARGS) > 1 "Only one arg given: $ARGS"
     outdir = ARGS[end]
     @assert !ispath(outdir) || isdir(outdir) "If last arg exists it has to be a dir: $outdir"
     fnames = ARGS[1:end-1]
@@ -56,6 +60,8 @@ elseif isempty(npys) && !isempty(tsvs)
     pointclouds = CSV.read.(tsvs, DataFrame; delim='\t')
     # assume there exist 3 columns named x,y,z
     pointclouds = [pc[:, ["x", "y", "z"]] for pc in pointclouds] .|> Matrix
+elseif isempty([npys; tsvs])
+    error("No .tsv or .npy files found.")
 else
     error("Both .npy and .tsv files given.")
 end
@@ -73,18 +79,28 @@ end
 pointclouds = xyz_dim1.(pointclouds)
 
 
-@threads for (pointcloud, fname) in collect(zip(pointclouds, fnames))
+for (pointcloud, fname) in collect(zip(pointclouds, fnames))
     fname = joinpath(outdir, splitext(basename(fname))[1] * ".json")
     # same approach as in eirene source code
     d = pairwise(Euclidean(), pointcloud, dims=2)
     maxrad = maximum(d)
     numrad = args.dist === nothing ? Inf : ceil(Int, maxrad / args.dist)
-    PH = eirene(d, maxdim=1, minrad=0, maxrad=maxrad, numrad=numrad)
-    b = barcode(PH, dim=1)
-    representatives = [classrep(PH, class=i, dim=1) for i in 1:size(b, 1)]
+    maxdim = args.H2 ? 2 : 1
+    PH = eirene(d, maxdim=maxdim, minrad=0, maxrad=maxrad, numrad=numrad)
+    b1 = barcode(PH, dim=1)
+    r1 = [classrep(PH, class=i, dim=1) for i in 1:size(b1, 1)]
+    if args.H2
+        b2 = barcode(PH, dim=2)
+        r2 = [classrep(PH, class=i, dim=2) for i in 1:size(b2, 1)]
+    end
     
+    println("Writing $fname")
     open(fname, "w") do io
-    	d = Dict("barcode" => b, "representatives" => representatives)
+    	d = Dict("barcode" => b1, "representatives" => r1)
+    	if args.H2
+            d["barcode_2"] = b2
+            d["representatives_2"] = r2
+        end
         JSON.print(io, d, 2) # indent = 2 spaces
     end
 end
