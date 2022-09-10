@@ -21,3 +21,5 @@ paste -d, \
     mlr --c2t --hi label atomi,atom,altLoc,res,chain,resi,iCode,x,y,z,occupancy,temp,element,charge +\
     clean-whitespace
 
+rm $TMP
+
