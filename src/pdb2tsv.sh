@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # USE: pdb2tsv.sh < INFILE.pdb > OUTFILE.tsv
 # Source: https://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
-TMP=$RAND.tmp
+TMP=$RANDOM.tmp
 grep '^ATOM' > $TMP
 paste -d, \
     <(cut -c07-11 $TMP) \
