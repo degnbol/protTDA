@@ -1,4 +1,7 @@
 #!/usr/bin/env zsh
-$0:h/raw.sh
-$0:h/xyz.sh
-$0:h/xyzCA.sh
+cd $0:h
+./raw.sh
+./xyz.sh
+./xyzCA.sh
+[ -d PH ] || echo "Complete PH calcs then ./post-PH.sh"
+./unpack.sh
