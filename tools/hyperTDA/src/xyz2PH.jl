@@ -1,6 +1,9 @@
 #!/usr/bin/env julia
 using ArgParse
-parser = ArgParseSettings(autofix_names=true, description="""
+parser = ArgParseSettings(autofix_names=true,
+                          # needed to allow -2 as option since it could also be seen as negative number
+                          allow_ambiguous_opts=true,
+description="""
 Reads .npy or .tsv files with xyz coordinates and writes persistent homology 
 barcodes and representatives to .json files in OUTDIR/.
 """)
@@ -28,7 +31,7 @@ else
     args = split(sArgs, ' ')
 end
 args = parse_args(args, parser, as_symbols=true)
-# for (k,v) in args println("# $k = $v") end
+for (k,v) in args println("# $k = $v") end
 args = NamedTuple(args)
 
 # load packages after potential -h/--help call.
@@ -39,15 +42,15 @@ using NPZ
 using DelimitedFiles
 using JSON
 
-if length(ARGS) == 2 && isdir(ARGS[1])
-    indir, outdir = ARGS
+if length(args.paths) == 2 && isdir(args.paths[1])
+    indir, outdir = args.paths
     fnames = readdir(indir; join=true)
     println(length(fnames), " files found in $indir")
 else
-    @assert length(ARGS) > 1 "Only one arg given: $ARGS"
-    outdir = ARGS[end]
+    @assert length(args.paths) > 1 "Only one path given: $(args.paths)"
+    outdir = args.paths[end]
     @assert !ispath(outdir) || isdir(outdir) "If last arg exists it has to be a dir: $outdir"
-    fnames = ARGS[1:end-1]
+    fnames = args.paths[1:end-1]
 end
 mkpath(outdir)
 
