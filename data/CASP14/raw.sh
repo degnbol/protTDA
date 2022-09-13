@@ -11,9 +11,11 @@ wget -O targets.csv 'https://predictioncenter.org/casp14/targetlist.cgi?type=csv
 
 # extact
 for file in *.tar.gz; do
-    mkdir -p $file:r:r/
-    tar -xf $file -C $file:r:r/
+    tar -xf $file
 done
+
+mkdir -p pdb/
+mv *.pdb pdb/
 
 # clean
 rm *.tar.gz

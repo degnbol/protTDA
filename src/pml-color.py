@@ -35,12 +35,23 @@ else:
         try: values = [float(v) for v in values]
         except ValueError: pass
 
+stored.noval = False
+def getb(resi):
+    try:
+        # zero to pop from start rather than end (default)
+        return values.pop(0)
+    except IndexError:
+        if not stored.noval:
+            sys.stderr.write(f"No value for resi {resi}-\n")
+            stored.noval = True
+        return 0.0
+
 # clear all B-factors so any that aren't residues will have the color 
 # associated with zero rather than their actual B-factor.
 cmd.alter(obj, 'b=0.0')
 # update the B-factors with new properties.
 # pop() instead of values[int(resi)-1] means we handle a skip in indexes (happens in T1036s1)
-cmd.alter(obj + ' and name CA', 'b=values.pop()')
+cmd.alter(obj + ' and name CA', 'b=getb(resi)')
 # color with spectrum command using default rainbow palette.
 cmd.spectrum("b", args.palette, obj)
 
