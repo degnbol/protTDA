@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# USE 1: pymol INFILE.pdb [OTHER.pdb ...] pml-color.py -- values.txt [-p PALLETE]
-# USE 2: pymol INFILE.pdb [OTHER.pdb ...] pml-color.py -- values.json [-k ENTRIES... [-p PALLETE]]
+# USE 1: pymol INFILE.pdb [OTHER.pdb ...] pml-color.py -- values.txt
+# USE 2: pymol INFILE.pdb [OTHER.pdb ...] pml-color.py -- values.json [-k ENTRIES...]
 # Examples above assumes pml-color.py is in your PATH.
 # values.txt has one numerical value on each line, corresponding to each residue.
 # values.json has this instead inside an entry with keys nested by ENTRIES, by default structure name inside INFILE.pdb.
@@ -10,6 +10,17 @@ import json
 import sys
 from os.path import isfile
 import argparse
+# external package installed in pymol with command
+# import pip; pip.main(['install', 'colorcet'])
+# maybe on commandline as
+# pymol -qcd "import pip; pip.main(['install', 'colorcet'])"
+import colorcet
+
+categorical_palette = "#d0e3f5 #712e67 #267592 #5fb12a #fac800 #ff7917 #e23a34".replace('#', '0x')
+# continuous_palette = "#1f005c #6d0065 #ab0060 #dd0652 #ff513c #ff8c1a #ffc600 #ffff00".replace('#', '0x')
+# https://colorcet.holoviz.org/
+# continuous_palette = " ".join(colorcet.bgyw).replace('#', '0x')
+continuous_palette = " ".join(colorcet.bmy).replace('#', '0x')
 
 # We only color the first given pdb if there are multiple.
 obj = cmd.get_object_list()[0]
@@ -17,7 +28,6 @@ obj = cmd.get_object_list()[0]
 parser = argparse.ArgumentParser(description="Color structure in pymol according to a simple file with numbers or json with similar entry.")
 parser.add_argument("infile")
 parser.add_argument("-k", "--keys", nargs="+", help="For json.", default=[obj])
-parser.add_argument("-p", "--palette", help="Color palette. Examples on https://pymolwiki.org/index.php/Spectrum", default="rainbow")
 args = parser.parse_args()
 
 if args.infile.endswith(".json"):
@@ -35,23 +45,50 @@ else:
         try: values = [float(v) for v in values]
         except ValueError: pass
 
-stored.noval = False
-def getb(resi):
-    try:
-        # zero to pop from start rather than end (default)
-        return values.pop(0)
-    except IndexError:
-        if not stored.noval:
-            sys.stderr.write(f"No value for resi {resi}-\n")
-            stored.noval = True
-        return 0.0
+
+def nonsingular(categories):
+    """
+    Given int vector, return int vector where each singlular unique entry is 0, 
+    and the rest are categorical starting at 1.
+    """
+    categories = np.asarray(categories)
+    out = np.zeros(len(categories), dtype=int)
+    cat = 0
+    for u, n in zip(*np.unique(categories, return_counts=True)):
+        if n > 1:
+            cat += 1
+            out[categories == u] = cat
+    return list(out)
+
+def get_resis(obj):
+    stored.resis = []
+    cmd.iterate(obj + ' and name CA', 'stored.resis.append(int(resi))')
+    return stored.resis
+
+cmd.remove("resn hoh") # remove water
+cmd.set('ribbon_width', 5, obj) # more visible ribon
+cmd.hide('cartoon', obj)
+# custom backbone visualisation
+cmd.show('licorice', obj + " and backbone and not name O")
 
 # clear all B-factors so any that aren't residues will have the color 
 # associated with zero rather than their actual B-factor.
-cmd.alter(obj, 'b=0.0')
-# update the B-factors with new properties.
-# pop() instead of values[int(resi)-1] means we handle a skip in indexes (happens in T1036s1)
-cmd.alter(obj + ' and name CA', 'b=getb(resi)')
-# color with spectrum command using default rainbow palette.
-cmd.spectrum("b", args.palette, obj)
+cmd.alter(obj, 'b=0')
+cmd.color('grey', obj)
+
+resis = np.asarray(get_resis(obj))
+
+if isinstance(values[0], float):
+    palette = continuous_palette
+    # if values (centralities) are missing at the end they are zero
+    values += [0]*(len(resis)-len(values))
+else:
+    palette = categorical_palette
+    values = nonsingular(values)
+
+values = np.asarray(values)
+def getb(resi):
+    return values[resis==int(resi)][0]
+cmd.alter(obj, 'b=getb(resi)')
+cmd.spectrum('b', palette, obj)
 
