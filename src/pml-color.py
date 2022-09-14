@@ -10,11 +10,10 @@ import json
 import sys
 from os.path import isfile
 import argparse
-# external package installed in pymol with command
-# import pip; pip.main(['install', 'colorcet'])
-# maybe on commandline as
-# pymol -qcd "import pip; pip.main(['install', 'colorcet'])"
-import colorcet
+try: import colorcet
+except ModuleNotFoundError: # a little convenience
+    import pip; pip.main(['install', 'colorcet'])
+    import colorcet
 
 categorical_palette = "#d0e3f5 #712e67 #267592 #5fb12a #fac800 #ff7917 #e23a34".replace('#', '0x')
 # continuous_palette = "#1f005c #6d0065 #ab0060 #dd0652 #ff513c #ff8c1a #ffc600 #ffff00".replace('#', '0x')
