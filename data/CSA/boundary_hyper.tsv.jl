@@ -48,17 +48,27 @@ for pad in 0:10
     end
     df_con[!, :pad] .= pad
 
-    successes = sum(df_con[df_con.cat, :n])
-    failures = sum(df_con[.!df_con.cat, :n])
+    P = sum(df_con[df_con.cat, :n])
+    N = sum(df_con[.!df_con.cat, :n])
+    TP = df_con[df_con.cat .& df_con.inwin, :n]
+    FP = df_con[.!df_con.cat .& df_con.inwin, :n]
     trials = sum(df_con[df_con.inwin, :n])
-    d = Hypergeometric(successes, failures, trials)
+    
+    d = Hypergeometric(P, N, trials)
     p, = ccdf(d, df_con[df_con.cat .& df_con.inwin, :n])
     df_con[!, :p] .= p
+    df_con[!, :sensitivity] .= TP / P
+    df_con[!, :coverage] .= (TP + FP) / N
     
     append!(df_cons, df_con)
 end
 
-rename!(df_cons, Dict(:cat => :catalytic, :inwin => :near_boundary, :n => :n_points, :pad => :dist_threshold))
 
+
+
+rename!(df_cons, Dict(:cat => :catalytic,
+                      :inwin => :near_boundary,
+                      :n => :n_points,
+                      :pad => :dist_threshold))
 CSV.write("boundary_hyper.tsv", df_cons; delim='\t')
 
