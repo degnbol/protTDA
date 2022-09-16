@@ -1,0 +1,8 @@
+SH2 domain is a keyword on uniprot
+https://www.uniprot.org/keywords/KW-0727
+Searching for it on uniprot with phrase (keyword:KW-0727)
+Then filtering for proteins with a 3D structure
+https://www.uniprot.org/uniprotkb?facets=proteins_with%3A1&query=%28keyword%3AKW-0727%29
+Then customizing columns to include external links "PDB" and "AlphaFoldDB"
+also adding column Domain [FT] that has SH2 ranges indicated.
+Download as TSV.
