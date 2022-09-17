@@ -5,5 +5,6 @@
     mlr -t filter '$PDB != ""' +\
     join -j PDB,domainStart -l PDB,resi -f resis.tsv +\
     join -j PDB,domainStop -l PDB,resi -f resis.tsv +\
-    put '$domainFrac = ($domainStop - $domainStart) / ($resi_max - $resi_min)' +\
-    reorder -f PDB,resi_min,resi_max,domainStart,domainStop,domainFrac > SH2PDBs.tsv
+    put '$resi_span = $resi_max - $resi_min + 1; $domainFrac = ($domainStop - $domainStart + 1) / ($resi_count)' +\
+    reorder -f PDB,resi_min,resi_max,resi_span,resi_count,domainStart,domainStop,domainFrac +\
+    sort -nr domainFrac > SH2PDBs.tsv

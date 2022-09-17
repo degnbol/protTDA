@@ -4,5 +4,5 @@ mlr -t --hi filter '$1 =~ "^ATOM"' +\
     cut -x -f 1 + uniq -a + clean-whitespace pdb/*.pdb.gz > resis.tsv
 
 # annotate min and max resi number of each PDB
-mlr -I -t --from resis.tsv stats1 -a min,max -f resi -g PDB + join -j PDB -f resis.tsv
+mlr -I -t --from resis.tsv stats1 -a min,max,count -f resi -g PDB + join -j PDB -f resis.tsv
 
