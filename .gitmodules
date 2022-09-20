@@ -1,3 +1,0 @@
-[submodule "Tudisco_2021"]
-	path = tools/hyperTDA/Publications/Tudisco_2021/node-edge-hypergraph-centrality
-	url = https://github.com/ftudisco/node-edge-hypergraph-centrality
