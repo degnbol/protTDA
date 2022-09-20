@@ -1,3 +1,7 @@
 [submodule "GASS-METAL"]
 	path = data/GASS/GASS-METAL
 	url = https://github.com/sandroizidoro/GASS-METAL
+[submodule "tools/hyperTDA"]
+	path = tools/hyperTDA
+	url = https://github.com/degnbol/hyperTDA/
+	branch = precompile
