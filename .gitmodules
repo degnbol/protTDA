@@ -1,0 +1,3 @@
+[submodule "GASS-METAL"]
+	path = data/GASS/GASS-METAL
+	url = https://github.com/sandroizidoro/GASS-METAL
