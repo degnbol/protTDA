@@ -5,4 +5,4 @@
 [submodule "tools/hyperTDA"]
 	path = tools/hyperTDA
 	url = https://github.com/degnbol/hyperTDA/
-	branch = precompile
+	branch = time
