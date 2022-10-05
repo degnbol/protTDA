@@ -3,3 +3,5 @@
 git config alias.root 'rev-parse --show-toplevel'
 # make sure submodules of other publications are initialized.
 git submodule update --init
+
+pip install --upgrade google-cloud-storage
