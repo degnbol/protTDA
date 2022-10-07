@@ -16,11 +16,12 @@ bucket = client.bucket("public-datasets-deepmind-alphafold")
 
 def gen_xyzs(max_results=None, size_limit=None):
     """ Yield numpy array with columns: x, y, z."""
-    for blob in client.list_blobs(bucket, max_results=max_results):
+    # *3 since there are 3 files for every .cif file
+    for blob in client.list_blobs(bucket, max_results=max_results*3):
         if not blob.name.endswith(".cif"): continue
         if size_limit is not None and blob.size > size_limit: continue
         with blob.open() as cif:
-            yield cif2xyz(cif)
+            yield blob.name.removesuffix(".cif"), cif2xyz(cif)
 
 def gen_xyzs_proteomes(max_results=None, size_limit=None):
     """ version reading a proteome at a time that may have multiple compressed cifs. """
@@ -30,6 +31,6 @@ def gen_xyzs_proteomes(max_results=None, size_limit=None):
             for member in tar.getmembers():
                 if member.name.endswith(".cif.gz"):
                     with gzip.open(tar.extractfile(member), 'rt') as cif:
-                        yield cif2xyz(cif)
+                        yield member.name.removesuffix(".cif.gz"), cif2xyz(cif)
 
 

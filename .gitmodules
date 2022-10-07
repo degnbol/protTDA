@@ -6,3 +6,9 @@
 	path = tools/hyperTDA
 	url = https://github.com/degnbol/hyperTDA/
 	branch = time
+[submodule "tools/Eirene.jl"]
+	path = tools/Eirene.jl
+	url = https://github.com/degnbol/Eirene.jl
+[submodule "tools/ripser"]
+	path = tools/ripser
+	url = https://github.com/Ripser/ripser
