@@ -12,3 +12,6 @@
 [submodule "tools/ripser"]
 	path = tools/ripser
 	url = https://github.com/Ripser/ripser
+[submodule "tools/ripser-plusplus"]
+	path = tools/ripser-plusplus
+	url = https://github.com/simonzhang00/ripser-plusplus.git
