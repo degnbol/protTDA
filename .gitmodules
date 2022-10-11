@@ -15,3 +15,9 @@
 [submodule "tools/ripser-plusplus"]
 	path = tools/ripser-plusplus
 	url = https://github.com/simonzhang00/ripser-plusplus.git
+[submodule "tools/ripser.py"]
+	path = tools/ripser.py
+	url = https://github.com/scikit-tda/ripser.py
+[submodule "tools/Ripserer.jl"]
+	path = tools/Ripserer.jl
+	url = https://github.com/mtsch/Ripserer.jl
