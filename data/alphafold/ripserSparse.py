@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-import fetch
+# import fetch
 from ripser import ripser
 from sklearn.metrics.pairwise import pairwise_distances
 from scipy import sparse
 import numpy as np
+# Approx sparse filtrations code from:
+# https://ripser.scikit-tda.org/en/latest/notebooks/Approximate%20Sparse%20Filtrations.html
 
-xyzs = list(fetch.gen_xyzs(max_results=1))
-name, X = xyzs[0]
-np.savetxt(name + ".mat", X)
+X = np.loadtxt("AF-A0A009DWL0-F1-model_v3.mat")
 
 D = pairwise_distances(X, metric='euclidean')
-r = ripser(D, maxdim=2, distance_matrix=True)
+# r = ripser(D, maxdim=2, distance_matrix=True)
 
 def getGreedyPerm(D):
     """
