@@ -5,3 +5,5 @@ git config alias.root 'rev-parse --show-toplevel'
 git submodule update --init
 
 pip install --upgrade google-cloud-storage
+# assuming gcloud sdk is installed. login to the project specified in fetch.py
+gcloud auth application-default login

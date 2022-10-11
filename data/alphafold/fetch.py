@@ -8,7 +8,13 @@ def cif2xyz(cif):
     - cif: fileobj or other object where each iteration produces a string cif line.
     :return: numpy matrix with 3 columns.
     """
-    return np.asarray([line.split()[10:13] for line in cif if line.startswith("ATOM")], dtype=float)
+    xyzs = []
+    for line in cif:
+        if line.startswith("ATOM"):
+            l = line.split()
+            if l[3] == "CA":
+                xyzs.append(l[10:13])
+    return np.asarray(xyzs, dtype=float)
 
 
 client = storage.Client(project="protTDA")
