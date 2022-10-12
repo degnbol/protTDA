@@ -10,7 +10,7 @@ parser = ArgParseSettings(description="Calculate PH barcodes and representatives
     "infiles"
     arg_type = String
     nargs = '+'
-    help = "Delimited files with x, y and z columns."
+    help = "Delimited files with x, y and z columns. Can be given as a folder as well where either .tsvs or .npys are located."
     "--header", "-H"
     action = :store_true
     help = "Infiles has header including column names x,y,z. Default is delimited file without header."
@@ -35,6 +35,16 @@ else
     _args = split("AF-A0A009DWL0-F1-model_v3.mat -α -d 2", ' ')
 end
 args = parse_args(_args, parser, as_symbols=true) |> NamedTuple
+# collect filenames given indirs
+infiles = args.infiles[.!isdir.(args.infiles)]
+for indir in args.infiles[isdir.(args.infiles)]
+    fnames = readdir(indir; join=true)
+    exts = [splitext(fname)[2] for fname in fnames]
+    tsvs = exts .== ".tsv"
+    npys = exts .== ".npy"
+    @assert any(tsvs) != any(npys) "$indir should either contain .tsvs or .npys."
+    append!(infiles, fnames[tsvs .| npys])
+end
 
 mat2pc(mat::Matrix{Float64}) = mat |> eachrow .|> Tuple
 
@@ -49,12 +59,12 @@ xyz2PH(rand(400, 3))
 
 mkpath(args.out)
 
-@threads for fname in args.infiles
+@threads for fname in infiles
     name = splitext(basename(fname))[1]
     outfile = "$(args.out)/$name.json"
     isfile(outfile) && continue
     println(name)
-    X = args.header ? Matrix(CSV.read(fname, DataFrame)[!, split("xyz","")]) : readdlm(fname)
+    X = args.header ? Matrix{Float64}(CSV.read(fname, DataFrame)[!, split("xyz","")]) : readdlm(fname)
     PH = xyz2PH(X)
     
     dic = Dict{String,Dict}()
