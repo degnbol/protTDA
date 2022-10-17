@@ -1,7 +1,6 @@
 #!/usr/bin/env julia
 using PyCall
 @pyinclude "fetch.py"
-# @pyinclude "louvain.py"
 using Ripserer
 using JSON
 using GZip
@@ -68,38 +67,6 @@ function centralities(B; maxiter::Int=100, tol::Float64=1e-6,
 end
 
 
-H2A(H, diagW::Vector{Float64}) = H * spdiagm(diagW) * H'
-# checked to give identical result to H2A2 below which is written according to 
-# code in louvain.py
-# H2A2(reps, diagW::Vector{Float64}, N::Int) = begin
-#     Is = Int[]
-#     Js = Int[]
-#     Vs = Float64[]
-#     for (p, r) in zip(diagW, reps)
-#         ns = Set(n for e in r for n in e)
-#         for n1 in ns
-#             for n2 in ns
-#                 push!(Is, n1)
-#                 push!(Js, n2)
-#                 push!(Vs, p)
-#             end
-#         end
-#     end
-#     sparse(Is, Js, Vs, N, N)
-# end
-
-# function dropdiag!(A)
-#     A[diagind(A)] .= 0
-#     dropzeros!(A)
-# end
-
-# function communities(H, diagW::Vector{Float64})
-#     A = H2A(H, diagW)
-#     dropdiag!(A)
-#     # PyCall doesn't support sparse yet
-#     collect(A) |> py"communities"
-# end
-
 for blob in py"gen_blobs"o()
     # discard "AF-" ... "-model_v3.cif"
     name = blob.name[4:end-13]
@@ -124,8 +91,6 @@ for blob in py"gen_blobs"o()
     # only use node cent since edge cent is too similar to persistence
     cent1 = centralities(H1; edge_weights=p1)[1]
     cent2 = centralities(H2; edge_weights=p2)[1]
-    # comm1 = communities(H1, p1)
-    # comm2 = communities(H2, p2)
     dic = Dict(:n => n,
                :x => [p[1] for p in PC],
                :y => [p[2] for p in PC],
@@ -134,10 +99,6 @@ for blob in py"gen_blobs"o()
                :H2 => Dict(:barcode => b2, :representatives => r2),
                :cent1 => cent1,
                :cent2 => cent2,
-               # :comm1 => comm1,
-               # :comm2 => comm2,
               )
     GZip.open(outfile, "w") do io JSON.print(io, dic) end
-    # on n=394: 46k instead of 56k but 0.064s instead of 0.022s.
-    # open(XzCompressorStream, outfile, "w") do io JSON.print(io, dic) end
 end
