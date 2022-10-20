@@ -1,21 +1,23 @@
 #!/usr/bin/env julia
-using Ripserer
 using JSON
 using GZip
+using TarIterators, TranscodingStreams, CodecZlib
+using Ripserer
 using SparseArrays
 using LinearAlgebra # norm and normalize etc
 using Random
 
-function cif2PC(fname::String)
+# USE: `./ripsererAF.jl n` where n is the partition number, i.e. [1;7]
+@assert length(ARGS) == 1
+mypart = parse(Int, ARGS[1])
+
+function cif2PC(lines::Vector{String})
     PC = Tuple{Float64,Float64,Float64}[]
-    GZip.open(fname, "rt") do io
-        lines = readlines(io)
-        lines = lines[startswith.(lines, "ATOM")]
-        for line in lines
-            l = split(line)
-            l[4] == "CA" || continue
-            push!(PC, (parse(Float64,l[11]), parse(Float64,l[12]), parse(Float64,l[13])))
-        end
+    lines = lines[startswith.(lines, "ATOM")]
+    for line in lines
+        l = split(line)
+        l[4] == "CA" || continue
+        push!(PC, (parse(Float64,l[11]), parse(Float64,l[12]), parse(Float64,l[13])))
     end
     PC
 end
@@ -41,6 +43,7 @@ Taken from centrality_tools.jl in repo node-edge-hypergraph-centrality.
 fgϕψs defined according to the max method (see Tudisco et al. 2021).
 Modified to only return node centralities since edge centralities were 
 too similar to the input persistences.
+Modified to return zeros for trivial input.
 """
 function centralities(B; maxiter::Int=100, tol::Float64=1e-6,
         edge_weights::Vector{Float64}=ones(size(B,2)),
@@ -52,6 +55,7 @@ function centralities(B; maxiter::Int=100, tol::Float64=1e-6,
     ψ = x->x .^ (1/15)
                 
     n,m = size(B)
+    m > 0 || return zeros(n)
         
     x0 = fill(1/n, n)
     y0 = fill(1/m, m)
@@ -71,48 +75,60 @@ function centralities(B; maxiter::Int=100, tol::Float64=1e-6,
     x0
 end
 
+function proteomePH(infname::String, outdir::String)
+    for (h, io) in TarIterator(infname, r".*\.cif\.gz")
+        PC = cif2PC(readlines(TranscodingStream(GzipDecompressor(), io)))
+        n = length(PC)
+        # strip .cif.gz
+        name = h.path[1:end-7]
+        println(name, " ", n)
+        PH = PC2PH(PC)
+        b1 = barcodes(PH,1)
+        b2 = barcodes(PH,2)
+        r1 = representatives(PH,1)
+        r2 = representatives(PH,2)
+        # edge_weights=persistences
+        cent1 = centralities(rep2H(r1, n); edge_weights=b1[:,2]-b1[:,1])
+        cent2 = centralities(rep2H(r2, n); edge_weights=b2[:,2]-b2[:,1])
+        GZip.open(outdir*"/"*name*".json.gz", "w") do io
+            JSON.print(io, Dict(:n => n,
+                   :x => Float64[p[1] for p in PC],
+                   :y => Float64[p[2] for p in PC],
+                   :z => Float64[p[3] for p in PC],
+                   :bars1 => b1, 
+                   :bars2 => b2, 
+                   :reps1 => r1,
+                   :reps2 => r2,
+                   :cent1 => cent1,
+                   :cent2 => cent2,
+                  ))
+        end
+    end
+end
+
+proteomes = readdir("proteomes/proteomes")
+proteomes = proteomes[endswith.(proteomes, ".tar")]
+# take every 7th file for this compute instance
+proteomes = proteomes[mypart:7:end]
+println(length(proteomes), " proteomes (for this compute instance)")
+
 compl = vcat([readdir(d2) for d1 in readdir("PH"; join=true) for d2 in readdir(d1; join=true)]...)
-# strip extensions
-compl = [f[1:end-8] for f in compl]
 println(length(compl), " completed")
 
-cifs = readdir("structures/proteomes/")
-cifs = cifs[endswith.(cifs, ".cif.gz")]
-# strip AF- and -model_v3.cif.gz
-cifs = [f[4:end-16] for f in cifs]
-println(length(cifs), " cifs")
-
-todo = setdiff(cifs, compl) |> shuffle
+todo = setdiff(proteomes, compl) |> shuffle
 println(length(todo), " todo")
 
-for name in todo
-    outdir = "PH/"*name[1:2]*"/"*name[3:4]
-    outfile = outdir*"/"*name*".json.gz"
-    isfile(outfile) && continue
+
+for proteome in todo
+    # proteome filename is on the form "proteome-tax_id-1418969-0_v3.tar" so
+    # 17:19 is the first 3 numbers in the tax id.
+    # This gives us 1000 folders each with 1000 folders ish.
+    outdir = "PH/"*proteome[17:19]*"/"*proteome[17:end-7]
+    isdir(outdir) && continue
     mkpath(outdir)
-    touch(outfile)
-    PC = try cif2PC("structures/proteomes/AF-$name-model_v3.cif.gz")
-    catch
-        println("problem reading structures/proteomes/AF-$name-model_v3.cif.gz")
-        continue
-    end
-    n = length(PC)
-    println(name, " ", n)
-    n > 0 || continue
-    PH = PC2PH(PC)
-    b1 = barcodes(PH,1)
-    b2 = barcodes(PH,2)
-    r1 = representatives(PH,1)
-    r2 = representatives(PH,2)
-    dic = Dict(:n => n,
-               :x => [p[1] for p in PC],
-               :y => [p[2] for p in PC],
-               :z => [p[3] for p in PC],
-               :H1 => Dict(:barcode => b1, :representatives => r1),
-               :H2 => Dict(:barcode => b2, :representatives => r2),
-              )
-    # add centralities unless trivial
-    if size(b1,1) > 0 dic[:cent1] = centralities(rep2H(r1, n); edge_weights=b1[:,2]-b1[:,1]) end
-    if size(b2,1) > 0 dic[:cent2] = centralities(rep2H(r2, n); edge_weights=b2[:,2]-b2[:,1]) end
-    GZip.open(outfile, "w") do io JSON.print(io, dic) end
+    touch(outdir*"/.inprogress")
+    println(proteome)
+    proteomePH("proteomes/proteomes/"*proteome, outdir)
+    rm(outdir*"/.inprogress")
 end
+
