@@ -1,11 +1,15 @@
 #!/usr/bin/env julia
 using JSON
 using GZip
-using TarIterators, TranscodingStreams, CodecZlib
 using Ripserer
 using SparseArrays
 using LinearAlgebra # norm and normalize etc
 using Random
+using TarIterators, TranscodingStreams, CodecZlib
+using BoundedStreams
+# isopen is not defined for BoundedInputStream but it will always be open when 
+# given to TranscodingStream
+TranscodingStreams.isopen(::BoundedInputStream{IOStream}) = true
 
 # USE: `./ripsererAF.jl n` where n is the partition number, i.e. [1;7]
 @assert length(ARGS) == 1
@@ -106,7 +110,7 @@ function proteomePH(infname::String, outdir::String)
     end
 end
 
-proteomes = readdir("proteomes/proteomes")
+proteomes = readdir("dl/proteomes")
 proteomes = proteomes[endswith.(proteomes, ".tar")]
 # take every 7th file for this compute instance
 proteomes = proteomes[mypart:7:end]
@@ -128,7 +132,7 @@ for proteome in todo
     mkpath(outdir)
     touch(outdir*"/.inprogress")
     println(proteome)
-    proteomePH("proteomes/proteomes/"*proteome, outdir)
+    proteomePH("dl/proteomes/"*proteome, outdir)
     rm(outdir*"/.inprogress")
 end
 
