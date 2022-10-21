@@ -11,10 +11,6 @@ using BoundedStreams
 # given to TranscodingStream
 TranscodingStreams.isopen(::BoundedInputStream{IOStream}) = true
 
-# USE: `./ripsererAF.jl n` where n is the partition number, i.e. [1;7]
-@assert length(ARGS) == 1
-mypart = parse(Int, ARGS[1])
-
 function cif2PC(lines::Vector{String})
     PC = Tuple{Float64,Float64,Float64}[]
     lines = lines[startswith.(lines, "ATOM")]
@@ -112,11 +108,10 @@ end
 
 proteomes = readdir("dl/proteomes")
 proteomes = proteomes[endswith.(proteomes, ".tar")]
-# take every 7th file for this compute instance
-proteomes = proteomes[mypart:7:end]
-println(length(proteomes), " proteomes (for this compute instance)")
+println(length(proteomes), " proteomes")
 
-compl = vcat([readdir(d2) for d1 in readdir("PH"; join=true) for d2 in readdir(d1; join=true)]...)
+compl = vcat([readdir(d1) for d1 in readdir("PH"; join=true)]...)
+compl = string.("proteome-tax_id-", compl, "_v3.tar") # add back filler
 println(length(compl), " completed")
 
 todo = setdiff(proteomes, compl) |> shuffle
