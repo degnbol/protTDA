@@ -1,7 +1,6 @@
 #!/usr/bin/env zsh
-part=$1
-# tmux new -d './ripsererAF.jl '$part
-for i in {1..`nproc`}; do
-    tmux neww -d './ripsererAF.jl '$part
+tmux new -d './ripsererAF.jl'
+for i in {1..63}; do
+    tmux neww -d './ripsererAF.jl'
 done
 
