@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
-tmux new -d './ripsererAF.jl'
-for i in {1..63}; do
-    tmux neww -d './ripsererAF.jl'
+tmux new -d './rips.zsh'
+for i in {1..157}; do
+    tmux neww -d './rips.zsh'
 done
 

@@ -118,7 +118,7 @@ todo = setdiff(proteomes, compl) |> shuffle
 println(length(todo), " todo")
 
 
-for proteome in todo
+for proteome in todo[1:min(1000,length(todo))]
     # proteome filename is on the form "proteome-tax_id-1418969-0_v3.tar" so
     # 17:19 is the first 3 numbers in the tax id.
     # This gives us 1000 folders each with 1000 folders ish.
