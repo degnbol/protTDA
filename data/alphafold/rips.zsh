@@ -1,4 +1,4 @@
 #!/usr/bin/env zsh
 for i in {1..10}; do
-    time -l ./ripsererAF.jl &>> rips.log
-done
+    /usr/bin/time -ao rips.log -v ./ripsererAF.jl
+done &>> ripsTime.log
