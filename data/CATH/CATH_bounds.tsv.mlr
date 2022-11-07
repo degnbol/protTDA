@@ -1,0 +1,4 @@
+$PDB = substr1($raw, 1, 4);
+$chain = substr1($raw, 5, 5);
+$domain = int(substr1($raw, 6, 7));
+$range =~ "^([0-9]+)-([0-9]+)$"; $start = "\1"; $stop = "\2";
