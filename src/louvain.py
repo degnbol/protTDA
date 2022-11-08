@@ -20,10 +20,10 @@ Prints curve length and number of communities for each curve.
 def load_PH(filename):
     with open(filename) as fh: d = json.load(fh)
     n = d['n']
-    b1 = np.array(d['bar1']).T
-    b2 = np.array(d['bar2']).T
-    r1 = d['rep1']
-    r2 = d['rep2']
+    b1 = np.array(d['bars1']).T
+    b2 = np.array(d['bars2']).T
+    r1 = d['reps1']
+    r2 = d['reps2']
     return n, b1, b2, r1, r2
 
 def create_graph_from_PH(barcodes, representatives, nPoints):
