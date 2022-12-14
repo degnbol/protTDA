@@ -1,4 +1,5 @@
 [deps]
+BoundedStreams = "819c7365-da23-433e-86d1-f9a07e67aad6"
 CodecZlib = "944b1d66-785c-5afd-91f1-9de20f533193"
 GZip = "92fee26a-97fe-5a0c-ad85-20a5f3185b63"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"

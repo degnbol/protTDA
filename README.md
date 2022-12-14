@@ -10,5 +10,7 @@ Topological Data Analysis on protein structures from crystalised structures and 
 - install google cloud sdk, e.g. on mac `brew install google-cloud-sdk`. see 
   https://cloud.google.com/storage/docs/gsutil_install
 - `./install.sh`
+- Python dependencies listed in `requirements.txt`,
+  e.g. `pip install -r requirements.txt`
 - Go to tools/hyperTDA and follow its install instructions in its README.
 - Download data by running data/RUNME.sh

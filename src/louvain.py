@@ -4,13 +4,15 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 from community import best_partition as louvain
-import json
+from glob import glob
+import gzip, json
 
 """
 Partition nodes into communities using persistent homology representives. 
 A graph is constructed by densely connecting nodes in each representative, 
 weighing them by persistence and then applying Louvain partitioning.
-USE: louvain.py PH/ communities.json
+USE: louvain.py 'INFILES*.json.gz' louvain.json.gz
+INFILES should be glob pattern for .json.gz files.
 It is assumed that files in PH/ are named the same as in pointClouds for each 
 curve, except the file extension.
 Point clouds are only used to get the total number of points.
@@ -18,7 +20,7 @@ Prints curve length and number of communities for each curve.
 """
 
 def load_PH(filename):
-    with open(filename) as fh: d = json.load(fh)
+    with gzip.open(filename) as fh: d = json.load(fh)
     n = d['n']
     b1 = np.array(d['bars1']).T
     b2 = np.array(d['bars2']).T
@@ -62,28 +64,27 @@ def communities(barcodes, representatives, nPoints):
 
 if __name__ == "__main__":
     
-    PH_dir, outfile = sys.argv[1:]
+    infiles, outfile = sys.argv[1:]
+    infiles = glob(infiles)   
     
     partitions = dict(H1={}, H2={})
     
     print("name\tnPoints\tnCommunities\tH")
     
-    for filename in sorted(os.listdir(PH_dir)):
-        filename = os.path.join(PH_dir, filename)
-        name, ext = os.path.splitext(filename)
-        if ext != ".json": continue
+    for filename in infiles:
+        if not filename.endswith(".json.gz"): continue
+        name = os.path.basename(filename.removesuffix(".json.gz"))
         if os.path.getsize(filename) == 0:
             sys.stderr.write(f"Empty file: {filename}\n")
             continue
-        name = os.path.basename(name)
         
         n, b1, b2, r1, r2 = load_PH(filename)
         partitions["H1"][name] = communities(b1, r1, n)
         partitions["H2"][name] = communities(b2, r2, n)
         # also works to show which curves analysis succeeded for
-        print(name, n, len(set(partitions[name])), 1, sep='\t')
-        print(name, n, len(set(partitions[name])), 2, sep='\t')
+        print(name, n, len(set(partitions["H1"][name])), 1, sep='\t')
+        print(name, n, len(set(partitions["H2"][name])), 2, sep='\t')
     
-    with open(outfile, 'w') as fh:
-        json.dump(partitions, fh, indent=True)
+    with gzip.open(outfile, 'wt') as fh:
+        json.dump(partitions, fh)
 
