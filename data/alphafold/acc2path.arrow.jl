@@ -17,6 +17,6 @@ for (i, d2) in enumerate(d2s)
     end
 end
 
-using DelimitedFiles
-writedlm("acc2path.tsv", [keys(acc2path) values(acc2path)])
+using Arrow
+Arrow.write("acc2path.arrow", (acc=keys(acc2path), path=values(acc2path)); compress=:lz4)
 

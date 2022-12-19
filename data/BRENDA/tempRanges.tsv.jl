@@ -47,4 +47,4 @@ df_range = DataFrame(accession=accessions, tempMin=tempMins, tempMax=tempMaxs)
 
 df = outerjoin(df_optim, df_range; on="accession")
 
-
+CSV.write("tempRanges.tsv", df; delim='\t')
