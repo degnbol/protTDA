@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
-tmux new -d './louvains.zsh'
-for i in {1..157}; do
-    tmux neww -d './louvains.zsh'
+for i in {1..20}; do
+    tmux neww
+    tmux send-keys 'for i in {1..10}; do ./louvains.py; done' Enter
 done
 

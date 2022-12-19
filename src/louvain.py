@@ -52,6 +52,10 @@ def create_graph_from_PH(barcodes, representatives, nPoints):
     
     return G
 
+# code can be simplified with:
+# def communities(adj):
+#     return list(louvain(nx.Graph(adj)).values())
+
 def communities(barcodes, representatives, nPoints):
     G = create_graph_from_PH(barcodes, representatives, nPoints)
     comms = louvain(G, resolution=1)
@@ -62,14 +66,13 @@ def communities(barcodes, representatives, nPoints):
     assert np.all(np.asarray(list(comms.keys())) == np.arange(len(comms))), assertMsg
     return list(comms.values())
 
-if __name__ == "__main__":
-    
-    infiles, outfile = sys.argv[1:]
-    infiles = glob(infiles)   
+
+def main(infiles_glob, outfile, log=sys.stdout):
+    infiles = glob(infiles_glob)   
     
     partitions = dict(H1={}, H2={})
     
-    print("name\tnPoints\tnCommunities\tH")
+    print("name\tnPoints\tnCommunities\tH", file=log, flush=True)
     
     for filename in infiles:
         if not filename.endswith(".json.gz"): continue
@@ -82,9 +85,13 @@ if __name__ == "__main__":
         partitions["H1"][name] = communities(b1, r1, n)
         partitions["H2"][name] = communities(b2, r2, n)
         # also works to show which curves analysis succeeded for
-        print(name, n, len(set(partitions["H1"][name])), 1, sep='\t')
-        print(name, n, len(set(partitions["H2"][name])), 2, sep='\t')
+        print(name, n, len(set(partitions["H1"][name])), 1, sep='\t', file=log)
+        print(name, n, len(set(partitions["H2"][name])), 2, sep='\t', file=log, flush=True)
     
     with gzip.open(outfile, 'wt') as fh:
         json.dump(partitions, fh)
+
+if __name__ == "__main__":
+    infiles_glob, outfile = sys.argv[1:]
+    main(infiles_glob, outfile)
 
