@@ -11,7 +11,9 @@ function cif2PC(lines::Vector{String})
     lines = lines[startswith.(lines, "ATOM")]
     for line in lines
         l = split(line)
-        l[4] == "CA" || continue
+        # 4th should be _atom_site.label_atom_id
+        atom = strip(l[4], ['"', '''])
+        atom == "CA" || atom == "C1" || continue
         push!(PC, (parse(Float64,l[11]), parse(Float64,l[12]), parse(Float64,l[13])))
     end
     PC
@@ -105,6 +107,7 @@ compl = vcat([readdir(d1) for d1 in readdir("$WORK/PH"; join=true)]...)
 println(length(compl), " completed")
 
 names = [basename(p)[1:4] for p in cif_paths]
+compl = [basename(p)[1:4] for p in compl]
 todo = setdiff(names, compl) |> shuffle
 println(length(todo), " todo")
 
