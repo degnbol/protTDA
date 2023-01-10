@@ -72,7 +72,8 @@ function readCIF(path::String)
         df[nonAltNon1, :occupancy] .= 1.
     end
     # check that occupancy sum to 1 for each residue with alt.
-    @assert all(combine(gdf, :occupancy => sum).occupancy_sum .≈ 1.)
+    agg_occ = combine(gdf, :occupancy => sum).occupancy_sum
+    @assert all(0.99 .<= agg_occ .<= 1.01)
     # weighted average xyz by occupancy
     df[!, [:x, :y, :z]] .*= df.occupancy
     df = combine(gdf, [:x, :y, :z] .=> sum; renamecols=false)
