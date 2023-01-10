@@ -6,10 +6,12 @@ using Ripserer
 using SparseArrays
 using LinearAlgebra # norm and normalize etc
 using Random
+using DataFrames
 
 """
 Extract each chain in the CIF that has a sequence with an accession.
 Only extract alpha carbons, i.e. the main carbon atom for each residue.
+Only use chains with a single uniprot accession associated.
 """
 function readCIF(path::String)
     lines = if endswith(path, ".gz")
@@ -20,33 +22,79 @@ function readCIF(path::String)
     nc = Cif(join(lines, '\n'))     
     # there should only be a pair PDB id => Cif
     cif = only(nc).second
+    title = only(cif["_entry.id"])
     
+    # _struct_ref.id: integer (as string) id for a sequence from a 
+    # single source (single uniprot accession).
+    # _struct_ref.entity_id: integer (as string) id for one or more 
+    # sequences glued together that will be assigned to one or more of 
+    # the chains.
+    
+    # for simplicity we only use chains with a single associated 
+    # accession.
     accessions = cif["_struct_ref.pdbx_db_accession"]
-    # they are probably in order
-    @assert cif["_struct_ref.id"]        == [string(i) for i in 1:length(accessions)]
-    @assert cif["_struct_ref.entity_id"] == [string(i) for i in 1:length(accessions)]
-    
-    PC = hcat([parse.(Float64, cif["_atom_site.Cartn_$axis"]) for axis in "xyz"]...)
-    isAtoms = cif["_atom_site.group_PDB"] .== "ATOM"
-    atom_labels = strip.(cif["_atom_site.label_atom_id"], Ref(['"', ''']))
-    isCarbonAlphas = (atom_labels .== "CA") .|| (atom_labels .== "C1") 
-    chain_ids = cif["_atom_site.label_asym_id"]
-    seq_ids = parse.(Int, cif["_atom_site.label_entity_id"])
-    valid = isAtoms .&& isCarbonAlphas .&& (seq_ids .<= length(accessions))
-    
-    PC = PC[valid, :]
-    chain_ids = chain_ids[valid]
-    seq_ids = seq_ids[valid]
-    
-    chains = NamedTuple[]
-    for chain_id in unique(chain_ids)
-        chain_idx = chain_id .== chain_ids
-        seq_id = unique(seq_ids[chain_idx]) |> only
-        accession = accessions[seq_id]
-        xyzs = PC[chain_idx, :] |> eachrow .|> Tuple{Float64,Float64,Float64}
-        push!(chains, (chain=chain_id, accession=accession, xyzs=xyzs))
+    seq_ids = cif["_struct_ref.entity_id"]
+    # either uniprot accession or just the PDB id
+    isAccession = cif["_struct_ref.db_name"] .== "UNP"
+    any(isAccession) || return title, NamedTuple[]
+    accessions = accessions[isAccession]
+    seq_ids = seq_ids[isAccession]
+    seq_id2acc = Dict{String,String}()
+    for seq_id in unique(seq_ids)
+        accession = accessions[seq_id .== seq_ids] |> unique
+        if length(accession) == 1
+            seq_id2acc[seq_id] = accession |> only
+        end
     end
-    cif["_entry.id"], chains
+    
+    df = DataFrame([parse.(Float64, cif["_atom_site.Cartn_$axis"]) for axis in "xyz"], [:x, :y, :z])
+    df.isAtom = cif["_atom_site.group_PDB"] .== "ATOM"
+    df.atomLabel = rstrip.(cif["_atom_site.label_atom_id"], ''')
+    df.isCarbonAlpha = (df.atomLabel .== "CA") .|| (df.atomLabel .== "C1") 
+    df.chain = cif["_atom_site.label_asym_id"]
+    df.model = cif["_atom_site.pdbx_PDB_model_num"]
+    df.resi = cif["_atom_site.label_seq_id"] # may contain ::Nothing for hetatom
+    df.accession = cif["_atom_site.label_entity_id"] # replace with actual acc after row filter
+    df.alt = cif["_atom_site.label_alt_id"] 
+    df.occupancy = parse.(Float64, cif["_atom_site.occupancy"])
+    df = df[df.isAtom .& df.isCarbonAlpha .& (df.accession .∈ Ref(keys(seq_id2acc))), :]
+    df.resi = parse.(Int, df.resi)
+    df.accession = [seq_id2acc[i] for i in df.accession]
+    
+    # May contain repeated entries with alt location.
+    gdf = groupby(df, [:chain, :model, :resi, :accession])
+    # For e.g. 2p3d the occupancy doesn't sum to chain A model 1 resi 35 
+    # atom without alt. We handle edge cases by ignoring occupancy for 
+    # non-alt:
+    nonAltNon1 = (df.alt .=== nothing) .& (df.occupancy .!= 1.)
+    if any(nonAltNon1)
+        @warn "occupancy != 1 for non-alt: $infname"
+        df[nonAltNon1, :occupancy] .= 1.
+    end
+    # check that occupancy sum to 1 for each residue with alt.
+    @assert all(combine(gdf, :occupancy => sum).occupancy_sum .≈ 1.)
+    # weighted average xyz by occupancy
+    df[!, [:x, :y, :z]] .*= df.occupancy
+    df = combine(gdf, [:x, :y, :z] .=> sum; renamecols=false)
+    
+    structures = NamedTuple[]
+    for ss in groupby(df, [:chain, :model, :accession])
+        chain = only(unique(ss.chain))
+        model = only(unique(ss.model))
+        accession = only(unique(ss.accession))
+        # should be in order but may start with an offset.
+        @assert ss.resi == sort(ss.resi) ss.resi
+        # Will be skipping values, e.g. if they are mutated.
+        # Only use it if that is not the case.
+        if ss.resi != ss.resi[end]-length(ss.resi)+1 : ss.resi[end]
+            @warn "Sequence with gaps: $path chain=$chain accession=$accession"
+            continue
+        end
+        xyzs = ss[!, [:x, :y, :z]] |> eachrow .|> Tuple{Float64,Float64,Float64}
+        push!(structures, (chain=chain, model=model, accession=accession, xyzs=xyzs))
+    end
+    
+    title, structures
 end
 
 PC2PH(PC::Vector{Tuple{Float64,Float64,Float64}}) = ripserer(Alpha(PC); dim_max=2, alg=:involuted)
@@ -103,18 +151,20 @@ function centralities(B; maxiter::Int=100, tol::Float64=1e-6,
 end
 
 function cifPH(infname::String, outdir::String)
-    name, chains = readCIF(infname)
-    length(chains) > 0 || @warn "No chains found: $infname"
-    for chain in chains
-        chain_id = chain.chain
-        accession = chain.accession
-        PC = chain.xyzs
+    name, structures = readCIF(infname)
+    length(structures) > 0 || @warn "No valid point clouds found: $infname"
+    
+    for structure in structures
+        chain = structure.chain
+        model = structure.model
+        accession = structure.accession
+        PC = structure.xyzs
         
         n = length(PC)
         if n < 5
             # an error will be thrown by ripserer like:
             # "Not enough points ($n) to construct initial simplex (need 5)"
-            @warn "Too few points ($n<5): $infname chain=$chain_id accession=$accession"
+            @warn "Too few points ($n<5): $infname chain=$chain accession=$accession"
             return
         end
         PH = try PC2PH(PC)
@@ -135,7 +185,8 @@ function cifPH(infname::String, outdir::String)
         # edge_weights=persistences
         cent1 = centralities(rep2H(r1, n); edge_weights=b1[:,2]-b1[:,1])
         cent2 = centralities(rep2H(r2, n); edge_weights=b2[:,2]-b2[:,1])
-        outfname = joinpath(outdir, "$name-$chain_id-$accession.json.gz")
+        outfname = joinpath(outdir, lowercase(name)*"_$(chain)_$model-$accession.json.gz")
+        @info "Writing $outfname"
         GZip.open(outfname, "w") do io
             JSON.print(io, Dict(:n => n,
                    :x => Float64[p[1] for p in PC],
@@ -160,9 +211,9 @@ mkpath("$WORK/PH")
 compl = vcat([readdir(d1) for d1 in readdir("$WORK/PH"; join=true)]...)
 println(length(compl), " completed")
 
-names = [basename(p)[1:4] for p in cif_paths]
+PDBs = [basename(p)[1:4] for p in cif_paths]
 compl = [basename(p)[1:4] for p in compl]
-todo = setdiff(names, compl) |> shuffle
+todo = setdiff(PDBs, compl) |> shuffle
 println(length(todo), " todo")
 
 
@@ -176,7 +227,8 @@ for _ in 1:10
         isfile(inprog) && continue
         touch(inprog)
         println(PDB)
-        cifPH("$WORK/mmCIF/$d1/$PDB.cif.gz", outdir)
+        infname = "$WORK/mmCIF/$d1/$PDB.cif.gz"
+        cifPH(infname, outdir)
         rm(inprog)
     end
 end
