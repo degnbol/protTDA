@@ -63,20 +63,13 @@ function readCIF(path::String)
     
     # May contain repeated entries with alt location.
     gdf = groupby(df, [:chain, :model, :resi, :accession])
-    # For e.g. 2p3d the occupancy doesn't sum to chain A model 1 resi 35 
-    # atom without alt. We handle edge cases by ignoring occupancy for 
-    # non-alt:
-    nonAltNon1 = (df.alt .=== nothing) .& (df.occupancy .!= 1.)
-    if any(nonAltNon1)
-        @warn "occupancy != 1 for non-alt: $infname"
-        df[nonAltNon1, :occupancy] .= 1.
-    end
-    # check that occupancy sum to 1 for each residue with alt.
-    agg_occ = combine(gdf, :occupancy => sum).occupancy_sum
-    @assert all(0.99 .<= agg_occ .<= 1.01)
+    # For e.g. 2p3d the occupancy doesn't sum to chain A model 1 resi 35 atom 
+    # without alt. We simply normalize to make sure weight is always summing to 
+    # 1 for each atom.
     # weighted average xyz by occupancy
     df[!, [:x, :y, :z]] .*= df.occupancy
-    df = combine(gdf, [:x, :y, :z] .=> sum; renamecols=false)
+    df = combine(gdf, [:x, :y, :z, :occupancy] .=> sum; renamecols=false)
+    df[!, [:x, :y, :z]] ./= df.occupancy
     
     structures = NamedTuple[]
     for ss in groupby(df, [:chain, :model, :accession])
@@ -92,7 +85,7 @@ function readCIF(path::String)
             continue
         end
         xyzs = ss[!, [:x, :y, :z]] |> eachrow .|> Tuple{Float64,Float64,Float64}
-        push!(structures, (chain=chain, model=model, accession=accession, xyzs=xyzs))
+        push!(structures, (chain=chain, model=model, accession=accession, position=ss.resi[begin], xyzs=xyzs))
     end
     
     title, structures
@@ -189,16 +182,18 @@ function cifPH(infname::String, outdir::String)
         outfname = joinpath(outdir, lowercase(name)*"_$(chain)_$model-$accession.json.gz")
         @info "Writing $outfname"
         GZip.open(outfname, "w") do io
-            JSON.print(io, Dict(:n => n,
-                   :x => Float64[p[1] for p in PC],
-                   :y => Float64[p[2] for p in PC],
-                   :z => Float64[p[3] for p in PC],
-                   :bars1 => b1, 
-                   :bars2 => b2, 
-                   :reps1 => r1,
-                   :reps2 => r2,
-                   :cent1 => cent1,
-                   :cent2 => cent2,
+            JSON.print(io, Dict(
+                                :n => n,
+                                :pos => structure.position,
+                                :x => Float64[p[1] for p in PC],
+                                :y => Float64[p[2] for p in PC],
+                                :z => Float64[p[3] for p in PC],
+                                :bars1 => b1, 
+                                :bars2 => b2, 
+                                :reps1 => r1,
+                                :reps2 => r2,
+                                :cent1 => cent1,
+                                :cent2 => cent2,
                   ))
         end
     end
