@@ -1,4 +1,5 @@
 #!/usr/bin/env julia
+using CrystalInfoFramework
 using JSON
 using GZip
 using Ripserer
@@ -6,17 +7,46 @@ using SparseArrays
 using LinearAlgebra # norm and normalize etc
 using Random
 
-function cif2PC(lines::Vector{String})
-    PC = Tuple{Float64,Float64,Float64}[]
-    lines = lines[startswith.(lines, "ATOM")]
-    for line in lines
-        l = split(line)
-        # 4th should be _atom_site.label_atom_id
-        atom = strip(l[4], ['"', '''])
-        atom == "CA" || atom == "C1" || continue
-        push!(PC, (parse(Float64,l[11]), parse(Float64,l[12]), parse(Float64,l[13])))
+"""
+Extract each chain in the CIF that has a sequence with an accession.
+Only extract alpha carbons, i.e. the main carbon atom for each residue.
+"""
+function readCIF(path::String)
+    lines = if endswith(path, ".gz")
+        GZip.open(path) do io readlines(io) end
+    else
+        open(path) do io readlines(io) end
     end
-    PC
+    nc = Cif(join(lines, '\n'))     
+    # there should only be a pair PDB id => Cif
+    cif = only(nc).second
+    
+    accessions = cif["_struct_ref.pdbx_db_accession"]
+    # they are probably in order
+    @assert cif["_struct_ref.id"]        == [string(i) for i in 1:length(accessions)]
+    @assert cif["_struct_ref.entity_id"] == [string(i) for i in 1:length(accessions)]
+    
+    PC = hcat([parse.(Float64, cif["_atom_site.Cartn_$axis"]) for axis in "xyz"]...)
+    isAtoms = cif["_atom_site.group_PDB"] .== "ATOM"
+    atom_labels = strip.(cif["_atom_site.label_atom_id"], Ref(['"', ''']))
+    isCarbonAlphas = (atom_labels .== "CA") .|| (atom_labels .== "C1") 
+    chain_ids = cif["_atom_site.label_asym_id"]
+    seq_ids = parse.(Int, cif["_atom_site.label_entity_id"])
+    valid = isAtoms .&& isCarbonAlphas .&& (seq_ids .<= length(accessions))
+    
+    PC = PC[valid, :]
+    chain_ids = chain_ids[valid]
+    seq_ids = seq_ids[valid]
+    
+    chains = NamedTuple[]
+    for chain_id in unique(chain_ids)
+        chain_idx = chain_id .== chain_ids
+        seq_id = unique(seq_ids[chain_idx]) |> only
+        accession = accessions[seq_id]
+        xyzs = PC[chain_idx, :] |> eachrow .|> Tuple{Float64,Float64,Float64}
+        push!(chains, (chain=chain_id, accession=accession, xyzs=xyzs))
+    end
+    cif["_entry.id"], chains
 end
 
 PC2PH(PC::Vector{Tuple{Float64,Float64,Float64}}) = ripserer(Alpha(PC); dim_max=2, alg=:involuted)
@@ -72,29 +102,53 @@ function centralities(B; maxiter::Int=100, tol::Float64=1e-6,
     x0
 end
 
-function cifPH(infname::String, outfname::String)
-    PC = GZip.open(infname) do io cif2PC(readlines(io)) end
-    n = length(PC)
-    PH = PC2PH(PC)
-    b1 = barcodes(PH,1)
-    b2 = barcodes(PH,2)
-    r1 = representatives(PH,1)
-    r2 = representatives(PH,2)
-    # edge_weights=persistences
-    cent1 = centralities(rep2H(r1, n); edge_weights=b1[:,2]-b1[:,1])
-    cent2 = centralities(rep2H(r2, n); edge_weights=b2[:,2]-b2[:,1])
-    GZip.open(outfname, "w") do io
-        JSON.print(io, Dict(:n => n,
-               :x => Float64[p[1] for p in PC],
-               :y => Float64[p[2] for p in PC],
-               :z => Float64[p[3] for p in PC],
-               :bars1 => b1, 
-               :bars2 => b2, 
-               :reps1 => r1,
-               :reps2 => r2,
-               :cent1 => cent1,
-               :cent2 => cent2,
-              ))
+function cifPH(infname::String, outdir::String)
+    name, chains = readCIF(infname)
+    length(chains) > 0 || @warn "No chains found: $infname"
+    for chain in chains
+        chain_id = chain.chain
+        accession = chain.accession
+        PC = chain.xyzs
+        
+        n = length(PC)
+        if n < 5
+            # an error will be thrown by ripserer like:
+            # "Not enough points ($n) to construct initial simplex (need 5)"
+            @warn "Too few points ($n<5): $infname chain=$chain_id accession=$accession"
+            return
+        end
+        PH = try PC2PH(PC)
+        catch e
+            if e isa OverflowError
+                @warn "Structure too large: $infname"
+                return
+            elseif e isa KeyError
+                @warn "Ripserer KeyError bug: $infname"
+            else
+                rethrow(e)
+            end
+        end
+        b1 = barcodes(PH,1)
+        b2 = barcodes(PH,2)
+        r1 = representatives(PH,1)
+        r2 = representatives(PH,2)
+        # edge_weights=persistences
+        cent1 = centralities(rep2H(r1, n); edge_weights=b1[:,2]-b1[:,1])
+        cent2 = centralities(rep2H(r2, n); edge_weights=b2[:,2]-b2[:,1])
+        outfname = joinpath(outdir, "$name-$chain_id-$accession.json.gz")
+        GZip.open(outfname, "w") do io
+            JSON.print(io, Dict(:n => n,
+                   :x => Float64[p[1] for p in PC],
+                   :y => Float64[p[2] for p in PC],
+                   :z => Float64[p[3] for p in PC],
+                   :bars1 => b1, 
+                   :bars2 => b2, 
+                   :reps1 => r1,
+                   :reps2 => r2,
+                   :cent1 => cent1,
+                   :cent2 => cent2,
+                  ))
+        end
     end
 end
 
@@ -112,14 +166,17 @@ todo = setdiff(names, compl) |> shuffle
 println(length(todo), " todo")
 
 
-for PDB in todo[1:min(1000,length(todo))]
-    # same system as they use, i.e. two middle chars are the folder.
-    d1 = PDB[2:3]
-    outfname = "$WORK/PH/$d1/$PDB.json.gz"
-    mkpath(dirname(outfname))
-    isfile(outfname) && continue
-    touch(outfname)
-    println(PDB)
-    cifPH("$WORK/mmCIF/$d1/$PDB.cif.gz", outfname)
+for _ in 1:10
+    for PDB in todo[1:min(1000,length(todo))]
+        # same system as they use, i.e. two middle chars are the folder.
+        d1 = PDB[2:3]
+        outdir = "$WORK/PH/$d1"
+        mkpath(outdir)
+        inprog = joinpath(outdir, "$PDB.inprogress")
+        isfile(inprog) && continue
+        touch(inprog)
+        println(PDB)
+        cifPH("$WORK/mmCIF/$d1/$PDB.cif.gz", outdir)
+        rm(inprog)
+    end
 end
-
