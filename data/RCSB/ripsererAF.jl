@@ -46,6 +46,8 @@ function readCIF(path::String)
             seq_id2acc[seq_id] = accession |> only
         end
     end
+    # if all chains are hybrids made up of multiple accessions.
+    length(seq_id2acc) > 0 || return title, NamedTuple[]
     
     df = DataFrame([parse.(Float64, cif["_atom_site.Cartn_$axis"]) for axis in "xyz"], [:x, :y, :z])
     df.isAtom = cif["_atom_site.group_PDB"] .== "ATOM"
@@ -225,6 +227,8 @@ for _ in 1:10
         println(PDB)
         infname = "$WORK/mmCIF/$d1/$PDB.cif.gz"
         cifPH(infname, outdir)
-        rm(inprog)
+        # rm(inprog) # if we only check for the inprog, and delete it we will 
+        # keep overwriting old work and keep trying PDBs that didn't produce 
+        # any results.
     end
 end
