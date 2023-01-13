@@ -222,13 +222,13 @@ for _ in 1:10
         outdir = "$WORK/PH/$d1"
         mkpath(outdir)
         inprog = joinpath(outdir, "$PDB.inprogress")
-        isfile(inprog) && continue
+        comple = joinpath(outdir, "$PDB.complete")
+        isfile(inprog) || isfile(comple) && continue
         touch(inprog)
         println(PDB)
         infname = "$WORK/mmCIF/$d1/$PDB.cif.gz"
         cifPH(infname, outdir)
-        # rm(inprog) # if we only check for the inprog, and delete it we will 
-        # keep overwriting old work and keep trying PDBs that didn't produce 
-        # any results.
+        rm(inprog) 
+        touch(comple)
     end
 end
