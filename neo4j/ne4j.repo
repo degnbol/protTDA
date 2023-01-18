@@ -1,0 +1,5 @@
+[neo4j]
+name=Neo4j RPM Repository
+baseurl=https://yum.neo4j.com/stable/5
+enabled=1
+gpgcheck=1
