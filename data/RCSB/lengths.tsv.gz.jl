@@ -18,11 +18,17 @@ nUniq(x) = unique(x) |> length
 Extract number of residues from CIF per chain and model.
 """
 function readCIF(path::String)
-    lines = if endswith(path, ".gz")
-        GZip.open(path) do io readlines(io) end
-    else
-        open(path) do io readlines(io) end
+    lines = try
+        if endswith(path, ".gz")
+            GZip.open(path) do io readlines(io) end
+        else
+            open(path) do io readlines(io) end
+        end
+    catch e
+        println("Error for file $path: ", e)
+        return DataFrame(:nRes=>Int[], :nrow=>Int[], :PDB=>String[])
     end
+    
     nc = Cif(join(lines, '\n'))     
     # there should only be a pair PDB id => Cif
     cif = only(nc).second
@@ -46,14 +52,10 @@ end
 
 fnames = vcat(readdir.(readdir("$WORK/mmCIF"; join=true); join=true)...);
 
-# compile
-@time df = @distributed vcat for f in fnames[1:48]
-    readCIF(f)
-end
-@time df = @distributed vcat for f in fnames
-    println(f)
-    readCIF(f)
-end
+@time df = reduce(vcat, pmap(readCIF, [fnames[1]; "ergerg"; fnames[2]]))
+# compile and estimate time to finish
+@time df = reduce(vcat, pmap(readCIF, fnames[1:150]))
+@time df = reduce(vcat, pmap(readCIF, fnames))
 
 CSV.write("$WORK/nRes.tsv.gz", df; delim='\t', compress=true)
 
