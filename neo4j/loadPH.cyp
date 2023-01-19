@@ -2,6 +2,8 @@
 CALL apoc.load.json("file:PH/100/100-0/AF-A0A431QUU5-F1-model_v3.json.gz")
 // has to be called value
 YIELD value
+// All merge calls may be replaced with CREATE for potential speed-up at the 
+// cost of potentially causing duplicate elements.
 MERGE (a:Accession{accession: "A0A431QUU5", n: value.n})
 WITH a, value
 // Subqueries
@@ -18,8 +20,13 @@ CALL {
         cent2: value.cent2[i]
     })
     MERGE (a)-[:HAS]->(p)
+    // a returning subquery.
+    // This means p outside will be a table of rows each with one node in order 
+    // as they were added.
     RETURN p
 }
+// collect transforms the table with a node on each row to a list so we can 
+// pick a node with indexing.
 WITH a, value, collect(p) as pc
 // Add dim 1 reps and bars
 CALL {
