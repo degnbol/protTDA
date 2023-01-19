@@ -10,5 +10,4 @@ cp -r /var/lib/neo4j/products/ .
 ROOT=`git root`
 NEO4J_HOME=$ROOT/neo4j NEO4J_CONF=$NEO4J_HOME/conf neo4j-admin dbms set-initial-password cdmadsen
 
-echo 'export NEO4J_HOME=$HOME/protTDA/neo4j' >> ~/.zshrc
-echo 'export NEO4J_CONF=$NEO4J_HOME/conf' >> ~/.zshrc
+echo 'source $HOME/protTDA/neo4j/env.sh' >> ~/.zshrc
