@@ -17,7 +17,7 @@ print(len(omes), " todo")
 
 shuffle(omes)
 
-with open("louvains.log", "a") as log:
+with open("dl/louvains.log", "a") as log:
     for outdir in omes[0:min(1000,len(omes))]:
         if isfile(outdir+"/.inprogress"): continue
         Path(outdir+"/.inprogress").touch()
