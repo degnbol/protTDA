@@ -26,7 +26,7 @@ for (name, df) in dfs
     dropmissing!(df_acc2path)
 
     # get copies of the PH for the accessions of interest.
-    outdir = "$ROOT/data/alphafold/dl/interpro/$name-PH"
+    outdir = "$ROOT/data/interpro/$name-PH"
     mkpath(outdir)
     for row in eachrow(df_acc2path)
         cp("$ROOT/data/alphafold/"*row.path, "$outdir/$(row.accession).json.gz")

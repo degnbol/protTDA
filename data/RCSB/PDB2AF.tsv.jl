@@ -3,9 +3,7 @@ using DataFrames
 using GZip, JSON
 ROOT = readchomp(`git root`)
 
-WORK = "../alphafold/dl/RCSB"
-
-fnames = vcat(readdir.(readdir("$WORK/PH"; join=true); join=true)...)
+fnames = vcat(readdir.(readdir("PH"; join=true); join=true)...)
 fnames = fnames[endswith.(fnames, ".json.gz")]
 basenames = basename.(fnames)
 accs = [split(f, '-')[end][1:end-length(".json.gz")] for f in basenames]
@@ -59,7 +57,7 @@ df.accession |> unique |> length |> println
 CSV.write("PDB2AF-pos1SameN.tsv.gz", df; delim='\t', compress=true)
 
 for row in eachrow(df)
-    outdir = "$WORK/PHcmp/" * row.accession[1:2]
+    outdir = "PHcmp/" * row.accession[1:2]
     PDB_chain_model = split(basename(row.path_PDB), '-')[1]
     mkpath(outdir)
     cp(joinpath("../alphafold", row.path), "$outdir/$(row.accession)-AF.json.gz"; force=true)

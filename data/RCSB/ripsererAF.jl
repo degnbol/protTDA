@@ -201,12 +201,11 @@ function cifPH(infname::String, outdir::String)
     end
 end
 
-WORK = "../alphafold/dl/RCSB"
-cif_paths = [p for d1 in readdir("$WORK/mmCIF/"; join=true) for p in readdir(d1; join=true)]
+cif_paths = [p for d1 in readdir("mmCIF/"; join=true) for p in readdir(d1; join=true)]
 println(length(cif_paths), " cifs")
 
-mkpath("$WORK/PH")
-compl = vcat([readdir(d1) for d1 in readdir("$WORK/PH"; join=true)]...)
+mkpath("PH")
+compl = vcat([readdir(d1) for d1 in readdir("PH"; join=true)]...)
 println(length(compl), " completed")
 
 PDBs = [basename(p)[1:4] for p in cif_paths]
@@ -219,14 +218,14 @@ for _ in 1:10
     for PDB in todo[1:min(1000,length(todo))]
         # same system as they use, i.e. two middle chars are the folder.
         d1 = PDB[2:3]
-        outdir = "$WORK/PH/$d1"
+        outdir = "PH/$d1"
         mkpath(outdir)
         inprog = joinpath(outdir, "$PDB.inprogress")
         comple = joinpath(outdir, "$PDB.complete")
         isfile(inprog) || isfile(comple) && continue
         touch(inprog)
         println(PDB)
-        infname = "$WORK/mmCIF/$d1/$PDB.cif.gz"
+        infname = "mmCIF/$d1/$PDB.cif.gz"
         cifPH(infname, outdir)
         rm(inprog) 
         touch(comple)

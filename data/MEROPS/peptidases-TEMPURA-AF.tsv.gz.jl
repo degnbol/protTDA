@@ -12,8 +12,8 @@ unique!(df_acc2path)
 dropmissing!(df_acc2path)
 
 # get copies of the PH for the accessions of interest.
-mkpath("$ROOT/data/alphafold/dl/MEROPS/PH")
+mkpath("$ROOT/data/MEROPS/PH")
 for row in eachrow(df_acc2path)
-    cp("$ROOT/data/alphafold/"*row.path, "$ROOT/data/alphafold/dl/MEROPS/PH/$(row.accession).json.gz")
+    cp("$ROOT/data/alphafold/"*row.path, "$ROOT/data/MEROPS/PH/$(row.accession).json.gz")
 end
 

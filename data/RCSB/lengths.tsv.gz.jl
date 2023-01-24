@@ -9,9 +9,6 @@ using GZip, CrystalInfoFramework
 using CSV, DataFrames
 using ThreadPools
 
-WORK = "../alphafold/dl/RCSB"
-
-
 nUniq(x) = unique(x) |> length
 
 """
@@ -50,12 +47,12 @@ end
 
 end
 
-fnames = vcat(readdir.(readdir("$WORK/mmCIF"; join=true); join=true)...);
+fnames = vcat(readdir.(readdir("mmCIF"; join=true); join=true)...);
 
-@time df = reduce(vcat, pmap(readCIF, [fnames[1]; "ergerg"; fnames[2]]))
+@time df = reduce(vcat, pmap(readCIF, [fnames[1]; "TEST_NOT_A_FILENAME"; fnames[2]]))
 # compile and estimate time to finish
 @time df = reduce(vcat, pmap(readCIF, fnames[1:150]))
 @time df = reduce(vcat, pmap(readCIF, fnames))
 
-CSV.write("$WORK/nRes.tsv.gz", df; delim='\t', compress=true)
+CSV.write("nRes.tsv.gz", df; delim='\t', compress=true)
 
