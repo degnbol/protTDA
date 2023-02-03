@@ -19,7 +19,7 @@ apocExtUrl='https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/down
 wget $apocExtUrl -O neo4j/plugins/apoc-5.3.0-extended.jar
 
 ROOT=`git root`
-NEO4J_HOME=$ROOT/neo4j/neo4j/ NEO4J_CONF=$ROOT/neo4j/conf neo4j-admin dbms set-initial-password cdmadsen
+NEO4J_HOME=$ROOT/db/neo4j/neo4j/ NEO4J_CONF=$ROOT/db/neo4j/conf neo4j-admin dbms set-initial-password cdmadsen
 
-echo 'source $HOME/protTDA/neo4j/env.sh' >> ~/.zshrc
+echo 'source $HOME/protTDA/db/neo4j/env.sh' >> ~/.zshrc
 

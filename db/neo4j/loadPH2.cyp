@@ -53,7 +53,7 @@ CALL {
     WITH a, struct, pc
     UNWIND range(0, size(struct.bars1[0])-1) AS i
     WITH a, struct.bars1[0][i] as birth, struct.bars1[1][i] as death, struct.reps1[i] as rep, i, pc
-    WHERE death - birth > 0.001
+    WHERE death - birth > 1
     CREATE (a)-[:HAS]->(r:Rep1{birth: birth, death: death})
     WITH r, rep, pc
     UNWIND rep as simplex
@@ -67,7 +67,7 @@ CALL {
     WITH a, struct, pc
     UNWIND range(0, size(struct.bars2[0])-1) AS i
     WITH a, struct.bars2[0][i] as birth, struct.bars2[1][i] as death, struct.reps2[i] as rep, i, pc
-    WHERE death - birth > 0.001
+    WHERE death - birth > 1
     CREATE (a)-[:HAS]->(r:Rep2{birth: birth, death: death})
     WITH r, rep, pc
     UNWIND rep as simplex
@@ -77,7 +77,9 @@ CALL {
     MERGE (r)-[:HAS]->(p)
 }
 ',
-{batchSize: 1, batchMode: "SINGLE", parallel: true, concurrency: 100})
+{batchSize: 1, batchMode: "BATCH", parallel: true, concurrency: 100})
 ;
 
-// {batchSize: 1, batchMode: "BATCH", parallel: true, concurrency: 100})
+// 14s thres>1.    {batchSize: 1,   batchMode: "BATCH", parallel: true, concurrency: 100})
+// ??s             {batchSize: 100, batchMode: "BATCH", parallel: true, concurrency: 100})
+// 28s thres>0.001 {batchSize: 1,   batchMode: "SINGLE", parallel: true, concurrency: 100})

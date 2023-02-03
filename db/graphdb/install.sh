@@ -1,0 +1,6 @@
+#!/usr/bin/env zsh
+# desktop version
+# wget 'https://go.ontotext.com/cs/c/?cta_guid=c616a7a8-2f4f-4846-bc17-9ff4b2f7e4aa&signature=AAH58kEgsqor2cH26ynJ3OVAo7r91MKfXQ&placement_guid=45080af3-4682-4606-906b-c6c255f99ae6&click=2de0f385-d86c-4c7e-8482-e2ad94cd1a74&hsutk=&canon=https%3A%2F%2Fwww.ontotext.com%2Fthank-you-for-downloading-graphdb%2F%3FsubmissionGuid%3D62ec8297-608c-4cb0-9f22-f4e135c42f33&portal_id=5619976&redirect_url=APefjpFL8NDQP3u279FJmu6QvinzdBFsfXnrKY9_bi4fC_fXvGYh8M8t9Efm0nXrWMoGcbTZPN5aDCgoWv0Kr7wpyj2-eKFfCCH7JYK-6evqmXWMQidxmO23h0Si1gmhUX4s_y_iJuCJHAQ4PJiAcXoGKhHqsX_oODnLE9gEdyFv43vyvmBD2Pu13ypTU2lQCMXwe4baSP1ZKWAd0X__fdmxRR-DdTs4tQ'
+# server version
+wget -O download.zip 'https://go.ontotext.com/cs/c/?cta_guid=3d3cab68-ee83-4dfc-a040-aa707e9a751a&signature=AAH58kFhShE4CiJpXfU2wQ0d5WEo-4VXgA&placement_guid=ed4ee978-afe2-438d-b2a5-139cf9c665bb&click=020df9b2-bdb4-4173-ae43-afac025769ff&hsutk=&canon=https%3A%2F%2Fwww.ontotext.com%2Fthank-you-for-downloading-graphdb%2F%3FsubmissionGuid%3D62ec8297-608c-4cb0-9f22-f4e135c42f33&portal_id=5619976&redirect_url=APefjpHvSZfltUkq7WcuncI9zQV_L66O2TXtrwkVPo2S_tHmQNOvW3uijpnmlPE-tkI8Q3soVzux6XnIQRkpz7k_k99RzBH_o5aJs2azHrvSr-rD0VcsrPPqFrYemQisjHrLEugoTlWlgJGaeFP9oX91p9tXueCE5O3jQvuQt7QAtov2ALqq-Bq3-7x9qiQ6m-1hzEx-PFV-YypcFaYZh9awQ_kYTKdYDw'
+unzip download.zip
