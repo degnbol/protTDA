@@ -46,6 +46,8 @@ fmt = "%$(length(string(N)))d/$N\r"
     Cs = xyz[seq .== 'C', :]
     nCys = size(Cs,1)
     dists = pairwise(Euclidean(), Cs; dims=1)
+    # minus diagonal (each cys is close to itself) and divide by 2 since matrix 
+    # is symmetrical.
     nClose = (sum(dists .< thres) - nCys) / 2
     df[i, [:nCys, :nCysClose]] .= [nCys, nClose]
 end
