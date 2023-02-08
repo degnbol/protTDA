@@ -12,7 +12,7 @@ for (let i = 0; i < 10000; i++) {
         else { sleep(10000) }
     }
     before = Date.now()
-    query = db.AF.find({pers1: {$elemMatch: {$gt: 5}}}, {_id: 1})
+    query = db.AF.find({pers1: {$elemMatch: {$gt: 8}}}, {_id: 1})
     after = Date.now()
     print(query.count(), "/", N, "duration:", after - before, "time:", after)
     print(db.runCommand({dbStats: 1}))

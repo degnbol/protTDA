@@ -26,19 +26,23 @@ client = mg.Client()
 db = client["protTDA"]
 mg.get_collection_names(db)
 af = db["AF"]
-# length(af)
-# mg.drop(af)
 
 # debug
-d1 = "/home/opc/protTDA/data/alphafold/PH/100"
-# d1, = ARGS
+# d1 = "/home/opc/protTDA/data/alphafold/PH/100"
+d1, = ARGS
 dirs = readdir(d1; join=true)
 # dir = dirs[2] # debug
-@time for dir in dirs
+for dir in dirs
+    println(dir)
     fnames = readdir(dir; join=true)
     fnames = fnames[startswith.(basename.(fnames), "AF")]
-
-    append!(af, read_PH_json.(fnames))
+    
+    # use batches
+    batchSize = 1000
+    N = length(fnames)
+    for batchi in 1:batchSize:N
+        fnames_batch = fnames[batchi:min(batchi+batchSize-1,N)]
+        @time append!(af, read_PH_json.(fnames_batch))
+    end
 end
-println(d1)
 
