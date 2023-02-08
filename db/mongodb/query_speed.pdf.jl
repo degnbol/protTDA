@@ -45,7 +45,10 @@ open("query_speed.js.out") do io
     end
 end
 
-dfs = stack(df, Not([:lang, :N])) |> dropmissing
+# set time relative to start
+df = transform(groupby(df, :lang), :time => (x -> x .- minimum(x)) => :time)
+# time is in ms for js and seconds for jl
+df[df.lang .== "js", :time] .= round.(Int, df[df.lang .== "js", :time] ./ 1000)
 
 plts = [plot(df, x=:N, y=c, color=:lang) for c in setdiff(names(df), ["lang", "N"])]
 
