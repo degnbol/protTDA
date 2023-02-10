@@ -1,4 +1,8 @@
 #!/usr/bin/env julia
+# USE: cysBridges.jl < INFILE.tsv.gz > OUTFILE.tsv.gz
+# WHERE INFILE has columns
+# - path: path to PH json relative to data/alphafold/
+# - AA: amino acid sequence
 using GZip, JSON
 using Distances
 using .Threads: @threads
@@ -13,12 +17,8 @@ function readxyz(path::String)
     end
 end
 
+df = loadtsv(stdin)
 
-df = loadtsv("../MEROPS/peptidases-TEMPURA-AF.tsv.gz")
-df_seqs = loadtsv("peptidases-TEMPURA-AF-seqs.tsv.gz")
-
-df = df[df.path .!= "NA", :]
-df = innerjoin(df, df_seqs; on=:accession)
 df.nCys .= -1
 df.nCysClose .= -1
 
@@ -37,7 +37,7 @@ N = nrow(df)
 fmt = "%$(length(string(N)))d/$N\r"
 
 @threads for i in 1:N
-    format(fmt, i) |> print
+    print(stderr, format(fmt, i))
     xyz = readxyz(joinpath("$ROOT/data/alphafold", df.path[i]))
     seq = df.AA[i] |> collect
 
@@ -51,7 +51,7 @@ fmt = "%$(length(string(N)))d/$N\r"
     nClose = (sum(dists .< thres) - nCys) / 2
     df[i, [:nCys, :nCysClose]] .= [nCys, nClose]
 end
-println()
+println(stderr)
 
-CSV.write("peptidases-TEMPURA-AF-seqs-cys.tsv.gz", df; delim='\t', compress=true)
+CSV.write(stdout, df; delim='\t', compress=true)
 
