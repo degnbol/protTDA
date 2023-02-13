@@ -1,4 +1,0 @@
-use the --database.directory arg for arangod to put it somewhere else and check 
-the size corresponds to reported internally.
-Then start running imports from various dirs with tmux script like before.
-And start periodic queries like before.

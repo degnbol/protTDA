@@ -1,0 +1,7 @@
+5763 / 18836 duration: 23214 time: 1676008241723 documentsSize: 4650676879 indexesSize: 1673449
+19464 / 63336 duration: 87939 time: 1676008339663 documentsSize: 9521984552 indexesSize: 3830496
+39022 / 127318 duration: 183871 time: 1676008533536 documentsSize: 23828665641 indexesSize: 10279136
+102871 / 335485 duration: 479751 time: 1676009023289 documentsSize: 62079174729 indexesSize: 26781820
+2023-02-10T06:23:53Z [730316] ERROR [8a210] {general} JavaScript exception in file '/usr/share/arangodb3/js/client/modules/@arangodb/arangosh.js' at 99,7: ArangoError 2000: Request timeout
+2023-02-10T06:23:53Z [730316] ERROR [409ee] {general} !      throw error;
+2023-02-10T06:23:53Z [730316] ERROR [cb0bd] {general} !      ^
