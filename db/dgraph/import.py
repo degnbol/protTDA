@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import os
-import orjson
+import orjson, gzip
 import pydgraph
+import time
 
 client_stub = pydgraph.DgraphClientStub('localhost:9080')
 client = pydgraph.DgraphClient(client_stub)
@@ -68,6 +69,8 @@ type AFProt {
 op = pydgraph.Operation(schema=schema)
 client.alter(op)
 
+before = time.time()
+
 fname = "/home/opc/protTDA/data/alphafold/PH/100/100-0/AF-A0A3S0EAG4-F1-model_v3.json.gz"
 acc = os.path.basename(fname).split('-')[1]
 
@@ -101,6 +104,9 @@ len(res.uids.values())
 txn.commit()
 txn.discard()
 
+after = time.time()
+print(after - before)
+
 # debug:
 nNodes = 1 + len(cas) + len(reps1) + len(reps2) + sum(len(r) for r in reps1) + sum(len(r) for r in reps2)
 nNodes
@@ -119,6 +125,7 @@ def qn(query):
 q("""query all($a: string) {
    me(func: eq(acc, $a)) {
       uid, acc, n
+      dgraph.type
     }
   }""",
 variables = {'$a': 'A0A3S0EAG4'})
@@ -163,6 +170,17 @@ q("""query {
 }
 """)
 
+q("""query {
+  me(func: gt(persistence, 5.0)) {
+    uid
+    persistence
+    simplices (first:4) {
+        uid
+    }
+  }
+}
+""")
+
 qn("""query {
   me(func: eq(dgraph.type, Rep2)) {
     uid
@@ -170,9 +188,10 @@ qn("""query {
 }
 """)
 
-qn("""query {
+q("""query {
   me(func: has(dgraph.type)) {
     uid
+    dgraph.type
   }
 }
 """)
