@@ -1,22 +1,11 @@
 #!/usr/bin/env julia
-
-acc2path = Dict{String,String}()
-
-d2s = [d2 for d1 in readdir("PH"; join=true) for d2 in readdir(d1; join=true)]
-
-N = length(d2s)
-
-for (i, d2) in enumerate(d2s)
-    i % 1000 == 0 && println("$i/$N")
-    for fname in readdir(d2)
-        if startswith(fname, "AF-")
-            # AF-Q9RH31-F1-model_v3.json.gz -> Q9RH31
-            acc = fname[4:end-20]
-            acc2path[acc] = joinpath(d2, fname)
-        end
-    end
-end
-
 using Arrow
-Arrow.write("acc2path.arrow", (acc=keys(acc2path), path=values(acc2path)); compress=:lz4)
+using DataFrames
 
+d0s = readdir("PH"; join=true)
+d0s = d0s[match.(r"^[0-9]", basename.(d0s)) .!= nothing]
+d1s = vcat(readdir.(d0s; join=true)...)
+@time df = DataFrame(path=vcat(readdir.(d1s; join=true)...))
+path2acc(path::String) = split(basename(path), '-')[2]
+@time df.acc = path2acc.(df.path)
+@time Arrow.write("acc2path.arrow", df)
