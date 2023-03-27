@@ -13,4 +13,5 @@ zune-inflate = "0.2.0"
 itertools = "0.10.5" 
 arrayvec = "0.7.2"
 osstrtools = "0.2.2"
-
+hdf5 = "0.8.1"
+ndarray = "0.15"
