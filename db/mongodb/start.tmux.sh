@@ -1,4 +1,4 @@
-tmux new -n mongo
+tmux new -dn mongo
 tmux send-keys './start.sh &' Enter
 tmux send-keys 'mongosh' Enter
 tmux send-keys 'use protTDA' Enter

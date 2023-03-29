@@ -5,7 +5,7 @@ fs = require("fs");
 db._useDatabase("protTDA");
 // reset
 // db._drop('AF')
-// db._create('AF')
+db._create('AF')
 
 // d0 = "../../data/alphafold/PH/100";
 // d1 = "../../data/alphafold/PH/100/100-0";
@@ -21,8 +21,6 @@ for (let i=0; i < d1s.length; i++) {
         if (fname.startsWith("AF")) {
             PH = JSON.parse(fs.readGzip(fs.join(d1, fname)));
             PH["_key"] = fname.split('-')[1]; // accession
-            PH["pers1"] = PH["bars1"][1].map((v, i) => v - PH["bars1"][0][i]);
-            PH["pers2"] = PH["bars2"][1].map((v, i) => v - PH["bars2"][0][i]);
             db.AF.save(PH);
         }
     }

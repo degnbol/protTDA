@@ -18,7 +18,7 @@ for (let i = 0; i < 10000; i++) {
     before = Date.now()
     nPersist = db._query(`
         FOR prot IN AF
-        FILTER prot.pers1 ANY > 8
+        FILTER prot.reps1[*].persistence ANY > 8
         RETURN { acc: prot._key }
         `).toArray().length;
     after = Date.now()

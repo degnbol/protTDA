@@ -4,6 +4,7 @@ sudo docker pull fauna/faunadb:latest
 # https://dev.to/englishcraig/how-to-set-up-faunadb-for-local-development-5ha7
 sudo npm i -g fauna-shell
 fauna add-endpoint http://localhost:8443/ --alias localhost --key secret
+fauna default-endpoint localhost
 fauna create-database development_db --endpoint=localhost
 echo -n "FAUNADB_KEY=" > .env
 fauna create-key development_db --endpoint=localhost |

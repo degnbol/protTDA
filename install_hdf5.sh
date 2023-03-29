@@ -24,3 +24,8 @@ using HDF5
 @assert HDF5.has_parallel()
 EOF
 
+# for rust
+mamba install hdf5=1.12.0
+# then before `cargo build`, call:
+export HDF5_DIR=`git root`/bin/mambaforge
+

@@ -10,8 +10,8 @@ sudo yum install libcurl libcurl-devel openssl xz-libs
 sudo dnf install python3-devel openssl-devel
 
 # python req
-conda create -yn mongo python3
-conda activate mongo
+mamba create -yn mongo python
+mamba activate mongo
 python3 -m pip install -r etc/pip/compile-requirements.txt
 
 # build

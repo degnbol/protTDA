@@ -57,7 +57,7 @@ struct Ca {
 }
 impl Ca {
     fn new(x: f64, y: f64, z: f64, cent1: f64, cent2: f64) -> Self {
-        Self { kind: ["Ca".to_string()], x: x, y: y, z: z, cent1: cent1, cent2: cent2 }
+        Self { kind: ["Ca".to_string()], x, y, z, cent1, cent2 }
     }
 }
 
@@ -100,7 +100,7 @@ struct Rep1 {
 impl Rep1 {
     fn new(birth: f64, death: f64, simplices: Vec<Simplex1>) -> Self {
         Self {
-            kind: ["Rep1".to_string()], birth: birth, death: death, persistence: death - birth, simplices: simplices
+            kind: ["Rep1".to_string()], birth, death, persistence: death - birth, simplices
         }
     }
 }
@@ -117,7 +117,7 @@ struct Rep2 {
 impl Rep2 {
     fn new(birth: f64, death: f64, simplices: Vec<Simplex2>) -> Self {
         Self {
-            kind: ["Rep2".to_string()], birth: birth, death: death, persistence: death - birth, simplices: simplices
+            kind: ["Rep2".to_string()], birth, death, persistence: death - birth, simplices
         }
     }
 }
@@ -133,7 +133,7 @@ struct AFProt {
 }
 impl AFProt {
     fn new(acc: &str, cas: Vec<UID>, reps1: Vec<Rep1>, reps2: Vec<Rep2>) -> Self {
-        Self { kind: ["AFProt".to_string()], acc: acc.to_string(), cas: cas, reps1: reps1, reps2: reps2 }
+        Self { kind: ["AFProt".to_string()], acc: acc.to_string(), cas, reps1, reps2 }
     }
     fn from(acc: &str, cas_UIDs: Vec<&String>, bars1: [Vec<f64>; 2], bars2: [Vec<f64>; 2], raw_reps1: Vec<Vec<Vec<usize>>>, raw_reps2: Vec<Vec<Vec<usize>>>) -> AFProt {
         let mut reps1 = Vec::with_capacity(raw_reps1.len());
