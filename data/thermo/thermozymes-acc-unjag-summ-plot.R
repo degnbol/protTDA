@@ -19,14 +19,14 @@ for(ec in unique(dt$EC)) {
 ggplot(dtb, aes(x=birth2, y=death2, color=thermophile)) +
     facet_wrap("EC") +
     scale_color_manual(values=c("blue", "red")) +
-    geom_point(alpha=0.05)
+    geom_point(alpha=0.05, size=0.5)
 
 ggsave("persistenceDiagramsH2.pdf")
 
 ggplot(dtb, aes(x=nRep2, y=pers2, color=thermophile)) +
     facet_wrap("EC") +
     scale_color_manual(values=c("blue", "red")) +
-    geom_point(alpha=0.05)
+    geom_point(alpha=0.05, size=0.5)
 
 ggsave("nRep2_pers2.pdf")
 
