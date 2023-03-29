@@ -1,0 +1,3 @@
+#!/usr/bin/env zsh
+cd $0:h
+scp opc@168.138.0.242:~/protTDA/data/thermo/thermozymes-acc-unjag-summ.tsv.gz thermozymes-acc-unjag-summ.tsv.gz
