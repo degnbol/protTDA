@@ -1,2 +1,3 @@
 mamba create -yn OT python numpy pandas scipy matplotlib pip
-mamba activate OT && pip install POT
+mamba run -n OT pip install POT
+mamba create -yn pymol -c schrodinger pymol-bundle
