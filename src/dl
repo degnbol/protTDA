@@ -1,0 +1,5 @@
+#!/usr/bin/env zsh
+# USE: dl FILENAME
+# where FILENAME is located in PWD
+CWD=$(pwd | sed "s,$HOME,~,")
+scp opc@168.138.0.242:$CWD/$1 $1
