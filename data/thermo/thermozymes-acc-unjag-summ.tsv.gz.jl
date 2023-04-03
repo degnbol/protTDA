@@ -28,6 +28,10 @@ df_ol = innerjoin(df_prot, df_acc; on=:acc)
 df_EC_n = combine(groupby(unique(df_ol[!, [:EC, :thermophile]]), :EC), nrow => :n)
 df_ol = innerjoin(df_ol, df_EC_n[df_EC_n.n .> 1, [:EC]]; on=:EC)
 
+sort!(df_ol, [:EC, :thermophile, :taxon, :acc])
+
+CSV.write("thermozymes-acc-unjag-taxed.tsv.gz", df_ol; delim='\t', compress=true)
+
 readPH(fname) = GZip.open(fname) do io
     d = JSON3.read(io, Dict)
     births1, deaths1 = d["bars1"]

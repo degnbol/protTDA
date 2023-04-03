@@ -21,3 +21,6 @@
 [submodule "tools/Ripserer.jl"]
 	path = tools/Ripserer.jl
 	url = https://github.com/mtsch/Ripserer.jl
+[submodule "tools/pymol-open-source"]
+	path = tools/pymol-open-source
+	url = https://github.com/schrodinger/pymol-open-source
