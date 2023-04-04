@@ -1,0 +1,23 @@
+SequenceCategory	Sequence	EC	PathwayCategory	Pathway	Uniprot
+Hexokinase-like			Mainly catabolic		
+	Hexo	2.7.1.1		Glycolysis	HXKA_YEAST, HXKB_YEAST, HXKA_MOUSE, HXKB_HUMAN, HXKB_RAT, HXK2/RAT, HXK3/RAT, HXST/HUMAN, HXKH/HUMAN, HXKP/MOUSE, HXKC/BOVIN
+	Gluco	2.7.1.2		Glycolysis	HXKG_ZYMMO, HXKG/STRC, HXKG/HUMAN, HXKH_RAT, HXKP_RAT, HXKG_YEAST
+	Fructo	2.7.1.4		Glycolysis	FRK/ZYMMO
+	Ribulo	2.7.1.16		Pentose cycle	KIRI_ECOLI, KIRI_SALTY
+	Glucono	2.7.1.12		Pentose cycle	GNTK_BACSU
+	Xylulo	2.7.1.17		Pentose cycle	XYLK_ECOLI, XYLK_LACPE, XYLK_ACTMI, XYLK/STRU, XYLK/ARTBA, XYLK/THERM
+	Glycero	2.7.1.30		Glycolysis	GLPK_BACSU, GLPK_ECOLI
+	Fuco	2.7.1.52		Pentose cycle	FUCK_ECOLI
+	Rhamnulo	2.7.1.5			RHAK/SALTY
+Ribokinase-like			Several roles		
+	Fructo	2.7.1.4		Glycolysis, sucrose	SCRK_VIBAL, SCRK_SALTY, SCRK/KLEPN
+	Ribo	2.7.1.15		Pentose cycle, nucleotide metabolism	RBSK_ECOLI, RBSK/YEAST, RBSK/PACDE
+	6-Phosphofructo	2.7.1.11		Glycolysis?	K6P2_ECOLI
+	6-Phosphotagato	2.7.1.11		Glycolysis?	K6PT/STAAU, LACC_STAAU, K6PT/STRMU, K6PT/LACLA, LACC_LACLA
+	1-Phosphofructo	2.7.1.56		Glycolysis	K1PF_ECOLI, K1PF_RHOCA, K1PF_XANCP
+	Inosine-guanosine	2.7.1.73		Purine metabolism	INGK_ECOLI
+Galactokinase-like			Mainly anabolic		
+	Galacto	2.7.1.6		Lactose cycle	GAL1_ECOLI, GAL1_KLULA, GAL1_SACCA, GALI_SALTY, GAL1_STRLI, GAL1/LACHE
+	Mevalonate	2.7.1.36		Cholesterol synthesis	KIME_RAT, KIME_YEAST
+	P-mevalonate	2.7.4.2		Cholesterol synthesis	ERG8_YEAST
+	Homoserine	2.7.1.39		Threonine synthesis	KHSE_BACSU, KHSE_BRELA, KHSE_CORGL, KHSE_ECOLI, KHDE_FREDI, KHSE_YEAST

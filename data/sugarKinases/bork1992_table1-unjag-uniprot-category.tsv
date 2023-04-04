@@ -1,0 +1,28 @@
+Uniprot	Entry	Protein names	Gene Names	Organism	Length	PDB	Sequence	SequenceCategory	EC	PathwayCategory	Pathway
+HXKA_YEAST	P04806	Hexokinase-1 (EC 2.7.1.1) (Hexokinase PI) (Hexokinase-A)	HXK1 HKA YFR053C	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	485	1HKG;3B8A;	Hexo	Hexokinase-like	2.7.1.1	Mainly catabolic	Glycolysis
+HXKB_YEAST	P04807	Hexokinase-2 (EC 2.7.1.1) (Hexokinase PII) (Hexokinase-B)	HXK2 HEX1 HKB YGL253W NRB486	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	486	1IG8;2YHX;5UWT;	Hexo	Hexokinase-like	2.7.1.1	Mainly catabolic	Glycolysis
+HXK2_RAT	P27881	Hexokinase-2 (EC 2.7.1.1) (Hexokinase type II) (HK II) (Hexokinase-B)	Hk2	Rattus norvegicus (Rat)	917		Hexo	Hexokinase-like	2.7.1.1	Mainly catabolic	Glycolysis
+HXK3_RAT	P27926	Hexokinase-3 (EC 2.7.1.1) (Hexokinase type III) (HK III) (Hexokinase-C)	Hk3	Rattus norvegicus (Rat)	924		Hexo	Hexokinase-like	2.7.1.1	Mainly catabolic	Glycolysis
+HXKG_YEAST	P17709	Glucokinase-1 (EC 2.7.1.2) (Glucose kinase 1) (GLK-1)	GLK1 HOR3 YCL040W YCL312 YCL40W	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	500	6P4X;6PDT;	Gluco	Hexokinase-like	2.7.1.2	Mainly catabolic	Glycolysis
+GNTK_BACSU	P12011	Gluconokinase (EC 2.7.1.12) (Gluconate kinase)	gntK BSU40060	Bacillus subtilis (strain 168)	513		Glucono	Hexokinase-like	2.7.1.12	Mainly catabolic	Pentose cycle
+GLPK_BACSU	P18157	Glycerol kinase (EC 2.7.1.30) (ATP:glycerol 3-phosphotransferase) (Glycerokinase) (GK)	glpK BSU09290	Bacillus subtilis (strain 168)	496		Glycero	Hexokinase-like	2.7.1.30	Mainly catabolic	Glycolysis
+GLPK_ECOLI	P0A6F3	Glycerol kinase (EC 2.7.1.30) (ATP:glycerol 3-phosphotransferase) (Glycerokinase) (GK)	glpK b3926 JW3897	Escherichia coli (strain K12)	502	1BO5;1BOT;1BU6;1BWF;1GLA;1GLB;1GLC;1GLD;1GLE;1GLF;1GLJ;1GLL;3EZW;	Glycero	Hexokinase-like	2.7.1.30	Mainly catabolic	Glycolysis
+FUCK_ECOLI	P11553	L-fuculokinase (EC 2.7.1.51) (L-fuculose kinase)	fucK b2803 JW2774	Escherichia coli (strain K12)	472		Fuco	Hexokinase-like	2.7.1.52	Mainly catabolic	Pentose cycle
+SCRK_VIBAL	P22824	Fructokinase (EC 2.7.1.4)	scrK	Vibrio alginolyticus	307		Fructo	Ribokinase-like	2.7.1.4	Several roles	Glycolysis, sucrose
+SCRK_KLEPN	P26420	Fructokinase (EC 2.7.1.4)	scrK	Klebsiella pneumoniae	307		Fructo	Ribokinase-like	2.7.1.4	Several roles	Glycolysis, sucrose
+RBSK_ECOLI	P0A9J6	Ribokinase (RK) (EC 2.7.1.15)	rbsK b3752 JW3731	Escherichia coli (strain K12)	309	1GQT;1RK2;1RKA;1RKD;1RKS;	Ribo	Ribokinase-like	2.7.1.15	Several roles	Pentose cycle, nucleotide metabolism
+RBSK_YEAST	P25332	Ribokinase (RK) (EC 2.7.1.15)	RBK1 YCR036W YCR36W YCR523	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	333		Ribo	Ribokinase-like	2.7.1.15	Several roles	Pentose cycle, nucleotide metabolism
+K1PF_ECOLI	P0AEW9	1-phosphofructokinase (EC 2.7.1.56) (Fructose 1-phosphate kinase) (Fru1PK)	fruK fpk b2168 JW2155	Escherichia coli (strain K12)	312		1-Phosphofructo	Ribokinase-like	2.7.1.56	Several roles	Glycolysis
+K1PF_RHOCA	P23386	1-phosphofructokinase (EC 2.7.1.56) (Fructose 1-phosphate kinase) (Fru1PK)	fruK	Rhodobacter capsulatus (Rhodopseudomonas capsulata)	316		1-Phosphofructo	Ribokinase-like	2.7.1.56	Several roles	Glycolysis
+K1PF_XANCP	P23354	1-phosphofructokinase (EC 2.7.1.56) (Fructose 1-phosphate kinase) (Fru1PK)	fruK XCC2371	Xanthomonas campestris pv. campestris (strain ATCC 33913 / DSM 3586 / NCPPB 528 / LMG 568 / P 25)	318		1-Phosphofructo	Ribokinase-like	2.7.1.56	Several roles	Glycolysis
+INGK_ECOLI	P0AEW6	Guanosine-inosine kinase (EC 2.7.1.73)	gsk b0477 JW0466	Escherichia coli (strain K12)	434	6VWO;6VWP;	Inosine-guanosine	Ribokinase-like	2.7.1.73	Several roles	Purine metabolism
+INGK_ECOLI	P0AEW6	Guanosine-inosine kinase (EC 2.7.1.73)	gsk b0477 JW0466	Escherichia coli (strain K12)	434	6VWO;6VWP;	Inosine-guanosine	Galactokinase-like	2.7.1.73	Mainly anabolic	Purine metabolism
+GAL1_ECOLI	P0A6T3	Galactokinase (EC 2.7.1.6) (Galactose kinase)	galK galA b0757 JW0740	Escherichia coli (strain K12)	382		Galacto	Galactokinase-like	2.7.1.6	Mainly anabolic	Lactose cycle
+GAL1_STRLI	P13227	Galactokinase (EC 2.7.1.6) (Galactose kinase)	galK	Streptomyces lividans	397		Galacto	Galactokinase-like	2.7.1.6	Mainly anabolic	Lactose cycle
+GAL1_LACHE	Q00052	Galactokinase (EC 2.7.1.6) (Galactose kinase)	galK	Lactobacillus helveticus (Lactobacillus suntoryeus)	388		Galacto	Galactokinase-like	2.7.1.6	Mainly anabolic	Lactose cycle
+KIME_RAT	P17256	Mevalonate kinase (MK) (EC 2.7.1.36)	Mvk	Rattus norvegicus (Rat)	395	1KVK;2R42;	Mevalonate	Galactokinase-like	2.7.1.36	Mainly anabolic	Cholesterol synthesis
+ERG8_YEAST	P24521	Phosphomevalonate kinase (EC 2.7.4.2)	ERG8 YMR220W YM9959.02	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	451		P-mevalonate	Galactokinase-like	2.7.4.2	Mainly anabolic	Cholesterol synthesis
+KHSE_BACSU	P04948	Homoserine kinase (HK) (HSK) (EC 2.7.1.39)	thrB BSU32240	Bacillus subtilis (strain 168)	309		Homoserine	Galactokinase-like	2.7.1.39	Mainly anabolic	Threonine synthesis
+KHSE_CORGL	P07128	Homoserine kinase (HK) (HSK) (EC 2.7.1.39)	thrB Cgl1184 cg1338	Corynebacterium glutamicum (strain ATCC 13032 / DSM 20300 / BCRC 11384 / JCM 1318 / LMG 3730 / NCIMB 10025)	309	5WAT;	Homoserine	Galactokinase-like	2.7.1.39	Mainly anabolic	Threonine synthesis
+KHSE_ECOLI	P00547	Homoserine kinase (HK) (HSK) (EC 2.7.1.39)	thrB b0003 JW0002	Escherichia coli (strain K12)	310		Homoserine	Galactokinase-like	2.7.1.39	Mainly anabolic	Threonine synthesis
+KHSE_YEAST	P17423	Homoserine kinase (HK) (HSK) (EC 2.7.1.39)	THR1 YHR025W	Saccharomyces cerevisiae (strain ATCC 204508 / S288c) (Baker's yeast)	357		Homoserine	Galactokinase-like	2.7.1.39	Mainly anabolic	Threonine synthesis

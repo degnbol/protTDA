@@ -1,0 +1,65 @@
+SequenceCategory	Sequence	EC	PathwayCategory	Pathway	Uniprot
+Hexokinase-like	Hexo	2.7.1.1	Mainly catabolic	Glycolysis	HXKA_YEAST
+Hexokinase-like	Hexo	2.7.1.1	Mainly catabolic	Glycolysis	HXKB_YEAST
+Hexokinase-like	Hexo	2.7.1.1	Mainly catabolic	Glycolysis	HXKA_MOUSE
+Hexokinase-like	Hexo	2.7.1.1	Mainly catabolic	Glycolysis	HXKB_HUMAN
+Hexokinase-like	Hexo	2.7.1.1	Mainly catabolic	Glycolysis	HXKB_RAT
+Hexokinase-like	Hexo	2.7.1.1	Mainly catabolic	Glycolysis	HXK2/RAT
+Hexokinase-like	Hexo	2.7.1.1	Mainly catabolic	Glycolysis	HXK3/RAT
+Hexokinase-like	Hexo	2.7.1.1	Mainly catabolic	Glycolysis	HXST/HUMAN
+Hexokinase-like	Hexo	2.7.1.1	Mainly catabolic	Glycolysis	HXKH/HUMAN
+Hexokinase-like	Hexo	2.7.1.1	Mainly catabolic	Glycolysis	HXKP/MOUSE
+Hexokinase-like	Hexo	2.7.1.1	Mainly catabolic	Glycolysis	HXKC/BOVIN
+Hexokinase-like	Gluco	2.7.1.2	Mainly catabolic	Glycolysis	HXKG_ZYMMO
+Hexokinase-like	Gluco	2.7.1.2	Mainly catabolic	Glycolysis	HXKG/STRC
+Hexokinase-like	Gluco	2.7.1.2	Mainly catabolic	Glycolysis	HXKG/HUMAN
+Hexokinase-like	Gluco	2.7.1.2	Mainly catabolic	Glycolysis	HXKH_RAT
+Hexokinase-like	Gluco	2.7.1.2	Mainly catabolic	Glycolysis	HXKP_RAT
+Hexokinase-like	Gluco	2.7.1.2	Mainly catabolic	Glycolysis	HXKG_YEAST
+Hexokinase-like	Fructo	2.7.1.4	Mainly catabolic	Glycolysis	FRK/ZYMMO
+Hexokinase-like	Ribulo	2.7.1.16	Mainly catabolic	Pentose cycle	KIRI_ECOLI
+Hexokinase-like	Ribulo	2.7.1.16	Mainly catabolic	Pentose cycle	KIRI_SALTY
+Hexokinase-like	Glucono	2.7.1.12	Mainly catabolic	Pentose cycle	GNTK_BACSU
+Hexokinase-like	Xylulo	2.7.1.17	Mainly catabolic	Pentose cycle	XYLK_ECOLI
+Hexokinase-like	Xylulo	2.7.1.17	Mainly catabolic	Pentose cycle	XYLK_LACPE
+Hexokinase-like	Xylulo	2.7.1.17	Mainly catabolic	Pentose cycle	XYLK_ACTMI
+Hexokinase-like	Xylulo	2.7.1.17	Mainly catabolic	Pentose cycle	XYLK/STRU
+Hexokinase-like	Xylulo	2.7.1.17	Mainly catabolic	Pentose cycle	XYLK/ARTBA
+Hexokinase-like	Xylulo	2.7.1.17	Mainly catabolic	Pentose cycle	XYLK/THERM
+Hexokinase-like	Glycero	2.7.1.30	Mainly catabolic	Glycolysis	GLPK_BACSU
+Hexokinase-like	Glycero	2.7.1.30	Mainly catabolic	Glycolysis	GLPK_ECOLI
+Hexokinase-like	Fuco	2.7.1.52	Mainly catabolic	Pentose cycle	FUCK_ECOLI
+Hexokinase-like	Rhamnulo	2.7.1.5	Mainly catabolic	Pentose cycle	RHAK/SALTY
+Ribokinase-like	Rhamnulo	2.7.1.5	Several roles	Pentose cycle	RHAK/SALTY
+Ribokinase-like	Fructo	2.7.1.4	Several roles	Glycolysis, sucrose	SCRK_VIBAL
+Ribokinase-like	Fructo	2.7.1.4	Several roles	Glycolysis, sucrose	SCRK_SALTY
+Ribokinase-like	Fructo	2.7.1.4	Several roles	Glycolysis, sucrose	SCRK/KLEPN
+Ribokinase-like	Ribo	2.7.1.15	Several roles	Pentose cycle, nucleotide metabolism	RBSK_ECOLI
+Ribokinase-like	Ribo	2.7.1.15	Several roles	Pentose cycle, nucleotide metabolism	RBSK/YEAST
+Ribokinase-like	Ribo	2.7.1.15	Several roles	Pentose cycle, nucleotide metabolism	RBSK/PACDE
+Ribokinase-like	6-Phosphofructo	2.7.1.11	Several roles	Glycolysis?	K6P2_ECOLI
+Ribokinase-like	6-Phosphotagato	2.7.1.11	Several roles	Glycolysis?	K6PT/STAAU
+Ribokinase-like	6-Phosphotagato	2.7.1.11	Several roles	Glycolysis?	LACC_STAAU
+Ribokinase-like	6-Phosphotagato	2.7.1.11	Several roles	Glycolysis?	K6PT/STRMU
+Ribokinase-like	6-Phosphotagato	2.7.1.11	Several roles	Glycolysis?	K6PT/LACLA
+Ribokinase-like	6-Phosphotagato	2.7.1.11	Several roles	Glycolysis?	LACC_LACLA
+Ribokinase-like	1-Phosphofructo	2.7.1.56	Several roles	Glycolysis	K1PF_ECOLI
+Ribokinase-like	1-Phosphofructo	2.7.1.56	Several roles	Glycolysis	K1PF_RHOCA
+Ribokinase-like	1-Phosphofructo	2.7.1.56	Several roles	Glycolysis	K1PF_XANCP
+Ribokinase-like	Inosine-guanosine	2.7.1.73	Several roles	Purine metabolism	INGK_ECOLI
+Galactokinase-like	Inosine-guanosine	2.7.1.73	Mainly anabolic	Purine metabolism	INGK_ECOLI
+Galactokinase-like	Galacto	2.7.1.6	Mainly anabolic	Lactose cycle	GAL1_ECOLI
+Galactokinase-like	Galacto	2.7.1.6	Mainly anabolic	Lactose cycle	GAL1_KLULA
+Galactokinase-like	Galacto	2.7.1.6	Mainly anabolic	Lactose cycle	GAL1_SACCA
+Galactokinase-like	Galacto	2.7.1.6	Mainly anabolic	Lactose cycle	GALI_SALTY
+Galactokinase-like	Galacto	2.7.1.6	Mainly anabolic	Lactose cycle	GAL1_STRLI
+Galactokinase-like	Galacto	2.7.1.6	Mainly anabolic	Lactose cycle	GAL1/LACHE
+Galactokinase-like	Mevalonate	2.7.1.36	Mainly anabolic	Cholesterol synthesis	KIME_RAT
+Galactokinase-like	Mevalonate	2.7.1.36	Mainly anabolic	Cholesterol synthesis	KIME_YEAST
+Galactokinase-like	P-mevalonate	2.7.4.2	Mainly anabolic	Cholesterol synthesis	ERG8_YEAST
+Galactokinase-like	Homoserine	2.7.1.39	Mainly anabolic	Threonine synthesis	KHSE_BACSU
+Galactokinase-like	Homoserine	2.7.1.39	Mainly anabolic	Threonine synthesis	KHSE_BRELA
+Galactokinase-like	Homoserine	2.7.1.39	Mainly anabolic	Threonine synthesis	KHSE_CORGL
+Galactokinase-like	Homoserine	2.7.1.39	Mainly anabolic	Threonine synthesis	KHSE_ECOLI
+Galactokinase-like	Homoserine	2.7.1.39	Mainly anabolic	Threonine synthesis	KHDE_FREDI
+Galactokinase-like	Homoserine	2.7.1.39	Mainly anabolic	Threonine synthesis	KHSE_YEAST
