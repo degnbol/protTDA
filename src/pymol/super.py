@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # Run pymol super.
 # Write to first arg as compressed TSV.
-# Write output of pymol super command to stdout
+# Write output of pymol super command to first positional arg.
+# Any extra positional args will be the "i" or "from" entries. Default is all vs all.
 # https://pymolwiki.org/index.php/Super
 # output format: (https://pymolwiki.org/index.php/Align)
 # 1. RMSD after refinement
@@ -103,11 +104,11 @@ class TaskTracker(multiprocessing.Process):
             task_remain = self._task_queue.qsize()
             task_finished = int((float(self.total_task - task_remain) /
                                  float(self.total_task)) * 100)
-            if task_finished % 20 == 0 and task_finished != self.current_state:
+            if task_finished != self.current_state:
                 self.current_state = task_finished
                 logger.info('{0}% done'.format(task_finished))
                 if self.verbose and task_finished > 0:
-                    pbar.update(20)
+                    pbar.update(1)
             if task_remain == 0:
                 break
         logger.debug('All task data cleared')
@@ -187,22 +188,47 @@ sys.stderr.write(f"{n} names\n")
 
 nis = []
 njs = []
-for i, ni in enumerate(names):
-    for j in range(i+1, n):
-        nis.append(ni)
-        njs.append(names[j])
+
+if len(sys.argv) > 2:
+    names_i = sys.argv[2:]
+    assert all([n in names for n in names_i]), "Not all provided names found among loaded structures"
+    # all v all for the provided names
+    for i, ni in enumerate(names_i):
+        for j in range(i+1, len(names_i)):
+            nis.append(ni)
+            njs.append(names[j])
+    # all of provided names vs all of the remaining names
+    for ni in names_i:
+        for nj in set(names) - set(names_i):
+            nis.append(ni)
+            njs.append(nj)
+else:
+    for i, ni in enumerate(names):
+        for j in range(i+1, n):
+            nis.append(ni)
+            njs.append(names[j])
+
+
 
 df = pd.DataFrame(dict(i=nis, j=njs))
 outcols = ['RMSD_post', 'atoms_post', 'cycles', 'RMSD_pre', 'atoms_pre', 'raw', 'res_aligned']
 df[outcols] = 0
 
+if len(sys.argv) == 1:
+    assert len(df) == (n ** 2 - n) / 2
+sys.stderr.write(f"{len(df)} comparisons\n")
+
 def row_super(row):
     # data_row (pd.Series): a row of a panda Dataframe
     # args: a dict of additional arguments
-    row[outcols] = cmd.super(row.i, row.j)
+    row[outcols] = cmd.super(row.i, row.j, cycles=0)
     return row
 
 df_res = multi_process(func=row_super, data=df)
+
+sanity = len(df) == (n ** 2 - n) / 2
+sys.stderr.write(f"{sanity}\n")
+
 # compression is inferred from filename
 df_res.to_csv(outfile, sep='\t', index=False)
 

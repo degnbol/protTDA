@@ -11,5 +11,8 @@
 # 6. Raw alignment score
 # 7. Number of residues aligned
 # REQ: pymol
-# USE: src/super.sh FILE1 FILE2 ... >> OUTFILE.tsv
-pymol -qQc ${=@} $0:h/super.py
+# USE: \ls INDIR/*.cif.gz | src/super.sh OUTFILE.tsv.gz
+# WHERE optional i (0-indexed) means the ith entry is compared to the rest, 
+# otherwise all-vs-all.
+INFILES=`cat -`
+pymol -qQc ${=INFILES} $0:h/super.py -- $@
