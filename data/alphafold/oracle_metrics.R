@@ -14,4 +14,8 @@ df.melt = melt(df, id.vars="timestamp")
 
 ggplot(df.melt, aes(x=timestamp, y=value, color=variable)) +
     facet_wrap(. ~ variable, scales="free_y") +
-    geom_line()
+    geom_line() +
+    expand_limits(y=0)
+    
+
+ggsave("oracle_metrics.pdf", width=8, height=7)
