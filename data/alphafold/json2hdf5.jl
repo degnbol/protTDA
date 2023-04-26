@@ -5,14 +5,33 @@ using JSON3
 ROOT = readchomp(`git root`)
 include("$ROOT/src/util/tar.jl")
 
-# USE: ./json2hdf5.jl INDIR/
+# USE: ./json2hdf5.jl [INDIR/]
+# Without INDIR it takes a random top level, like:
 # E.G. ./json2hdf5.jl PH/391
 # E.G. ./json2hdf5.jl PH/391/391366-0
 dProteome = "$ROOT/data/proteomes" #/proteome-tax_id-391366-0_v3.tar
-outdir = "$ROOT/data/alphafold/PH/h5"
-indir = ARGS |> only
+outdir = "$ROOT/data/alphafold/PH/hdf5"
+indir = ARGS
+
+if length(indir) > 0
+    @assert length(indir) == 1
+    indir, = indir
+    tmpfile = "h5temp/lars"
+else
+    using Random
+    # assuming we keep a record at h5temp
+    todo = readdir("PH")
+    todo = todo[startswith.(todo, r"[0-9]")]
+    compl = readdir("h5temp")
+    todo = setdiff(todo, compl)
+    indir = rand(todo)
+    tmpfile = "h5temp/$indir"
+    # touch(tmpfile)
+    indir = "PH/$indir"
+    println(indir)
+end
+
 basedir = splitpath(indir)[end]
-outfile = joinpath(outdir, basedir) * ".h5"
 indir_contents = readdir(indir)
 indir_fnames = indir_contents[startswith.(indir_contents, "AF-")]
 if length(indir_fnames) > 0
@@ -42,7 +61,9 @@ function cif2seq(io)::String
         oneliner = split(line)
         length(oneliner) == 1 || return oneliner[2]
         seq = String[]
+        # (only) the very first line of the seq starts with ;
         line = lstrip(readline(io), ';')
+        # the seq is terminated with a line only containing semicolon
         while line != ";"
             push!(seq, line)
             line = readline(io)
@@ -82,44 +103,60 @@ function read_proteome(taxon::String)
     seqs, pLDDTs
 end
 
-h5open(outfile, "w") do fid
-    filters = H5Zzstd.ZstdFilter()
+filters = H5Zzstd.ZstdFilter()
 
-    for (t, (taxon, infnames)) in enumerate(zip(taxons, indir_fnames))
-        print(stderr, "$t/$(length(taxons))\r")
-        
-        @time begin
-            seqs, pLDDTs = read_proteome(taxon);
+for (t, (taxon, infnames)) in enumerate(zip(taxons, indir_fnames))
+    tmpfile2 = "h5temp2/$taxon"
+    isfile(tmpfile2) && continue
+    touch("h5temp2/$taxon")
+    print(stderr, "$t/$(length(taxons)) $taxon\n")
+    
+    @time begin
+        seqs, pLDDTs = read_proteome(taxon);
 
-            for fname in infnames
+        for (i_fname, fname) in enumerate(infnames)
+            print(stderr, "$i_fname/$(length(infnames))\r")
+            acc = split(basename(fname), '-')[2]
+            accdir = joinpath(outdir, acc[1:5]) |> mkpath
+            h5open(joinpath(accdir, acc * ".h5"), "w") do fid
                 d = GZip.open(fname) do io
                     JSON3.read(io, Dict)
                 end;
-                acc = split(basename(fname), '-')[2]
                 # haskey(fid, acc) && continue
-                g = create_group(fid, acc)
-                att = attrs(g)
+                # g = create_group(fid, acc)
+                att = attrs(fid)
                 att["tax"], att["taxv"] = parse.(Int32, split(taxon, '-'))
                 att["n"] = d["n"]
                 att["AA"] = seqs[acc]
-                g["Cas"] = hcat(d["x"], d["y"], d["z"], pLDDTs[acc], d["cent1"], d["cent2"]) .|> Float32
+                fid["Cas"] = hcat(d["x"], d["y"], d["z"], pLDDTs[acc], d["cent1"], d["cent2"]) .|> Float32
                 bars1 = hcat(d["bars1"]...) |> Matrix{Float32}
                 bars2 = hcat(d["bars2"]...) |> Matrix{Float32}
                 bars1[:, 2] .-= bars1[:, 1] # death -> persistence
                 bars2[:, 2] .-= bars2[:, 1] # death -> persistence
-                g["bars1"] = bars1
-                g["bars2"] = bars2
+                fid["bars1"] = bars1
+                fid["bars2"] = bars2
                 reps1s = reduce.(hcat, d["reps1"]; init=zeros(Int32, 2, 0)) .|> Matrix{Int32}
                 reps2s = reduce.(hcat, d["reps2"]; init=zeros(Int32, 3, 0)) .|> Matrix{Int32}
                 reps1s = Int32[vcat(fill.(1:length(reps1s), size.(reps1s, 2))...) reduce(hcat, reps1s; init=zeros(Int32, 2, 0))']
                 reps2s = Int32[vcat(fill.(1:length(reps2s), size.(reps2s, 2))...) reduce(hcat, reps2s; init=zeros(Int32, 3, 0))']
-                try g["reps1", filters=filters, chunk=size(reps1s)] = reps1s
-                catch; g["reps1"] = reps1s
+                try fid["reps1", filters=filters, chunk=size(reps1s)] = reps1s
+                catch; fid["reps1"] = reps1s
                 end
-                try g["reps2", filters=filters, chunk=size(reps2s)] = reps2s
-                catch; g["reps2"] = reps2s
+                try fid["reps2", filters=filters, chunk=size(reps2s)] = reps2s
+                catch; fid["reps2"] = reps2s
                 end
             end
         end
     end
+    
+    # note completion
+    open(tmpfile2, "w") do io
+        println(io, "complete")
+    end
 end
+
+# note completion
+open(tmpfile, "w") do io
+    println(io, "complete")
+end
+
