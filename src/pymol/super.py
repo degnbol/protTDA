@@ -221,7 +221,7 @@ sys.stderr.write(f"{len(df)} comparisons\n")
 def row_super(row):
     # data_row (pd.Series): a row of a panda Dataframe
     # args: a dict of additional arguments
-    row[outcols] = cmd.super(row.i, row.j, cycles=0)
+    row[outcols] = cmd.super(row.i, row.j)
     return row
 
 df_res = multi_process(func=row_super, data=df)
