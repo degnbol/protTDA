@@ -14,7 +14,7 @@ def readPH(path):
         return json.load(fp)
 
 phs = [readPH("../alphafold/" + p) for p in df.path]
-phs_t = [readPH("../alphafold/" + p) for p in df_t.path]
+phs_t = [readPH(p) for p in df_t.path]
 
 def ph2bars(ph, dim):
     bars = np.asarray(ph[f"bars{dim}"]).T
@@ -30,6 +30,8 @@ bars2_t = [ph2bars(ph,2) for ph in phs_t]
 n = len(phs)
 n_t = len(phs_t)
 
+colnames = list(df.acc) + list(df_t.acc)
+
 dists1 = np.zeros([n, n + n_t])
 for i in range(n):
     print(f"{i}/{n}", end='\r')
@@ -38,7 +40,7 @@ for i in range(n):
     for j in range(n_t):
         dists1[i, n+j] = W(bars1[i], bars1_t[j])
 
-pd.DataFrame(dists1, columns=df.acc).to_csv("wassersteins1.tsv.gz", sep='\t', index=False)
+pd.DataFrame(dists1, columns=colnames).to_csv("wassersteins1.tsv.gz", sep='\t', index=False)
 
 dists2 = np.zeros([n, n + n_t])
 for i in range(n):
@@ -48,6 +50,6 @@ for i in range(n):
     for j in range(n_t):
         dists2[i, n+j] = W(bars2[i], bars2_t[j])
 
-pd.DataFrame(dists2, columns=df.acc).to_csv("wassersteins2.tsv.gz", sep='\t', index=False)
+pd.DataFrame(dists2, columns=colnames).to_csv("wassersteins2.tsv.gz", sep='\t', index=False)
 
 
