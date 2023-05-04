@@ -1,5 +1,5 @@
 CREATE TABLE AF (
-    acc       VARCHAR PRIMARY KEY,
+    acc       VARCHAR(10) PRIMARY KEY,
     taxon     INTEGER NOT NULL,
     n         INTEGER NOT NULL,
     maxRep1   INTEGER NOT NULL,
