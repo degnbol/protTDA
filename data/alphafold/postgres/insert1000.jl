@@ -104,17 +104,16 @@ LibPQ.Connection("dbname=protTDA") do conn
         todo = readdir("PH/pgh5")
         todo = todo[filesize.(joinpath.("PH/pgh5", todo)) .== 0] |> rand
         todos = readdir("PH/hdf5/$todo")
+        todos = [splitext.(fname)[1] for fname in todos]
+        setdiff!(todos, pqin(conn, todos))
+        println(length(todos), " left in ", todo)
         if isempty(todos)
             open("PH/pgh5/$todo", "w") do io println(io, "complete") end
             continue
         end
-        todos = [splitext.(fname)[1] for fname in todos]
         shuffle!(todos)
-        println(length(todos), " left in ", todo)
-        restrict = min(length(todos), 100000)
-        todos = todos[1:restrict]
-        setdiff!(todos, pqin(conn, todos))
         batchsize = 1000
+        restrict = 100000
         for i_batch in 1:batchsize:restrict
             print("$i_batch/$restrict\r")
             accs = todos[i_batch : min(length(todos),i_batch+batchsize-1)]
