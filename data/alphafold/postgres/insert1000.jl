@@ -5,6 +5,8 @@ using HDF5, H5Zzstd #, H5Zlz4, H5Zblosc
 using StatsBase: mean, countmap
 using Random: shuffle!
 
+noext(fname) = splitext(fname)[1]
+
 AF_COLS = [
     "acc",
     "taxon",
@@ -101,10 +103,11 @@ cd("$ROOT/data/alphafold")
 
 LibPQ.Connection("dbname=protTDA") do conn
     for _ in 1:1000
-        todo = readdir("PH/pgh5")
-        todo = todo[filesize.(joinpath.("PH/pgh5", todo)) .== 0] |> rand
-        todos = readdir("PH/hdf5/$todo")
-        todos = [splitext.(fname)[1] for fname in todos]
+        # todo = readdir("PH/h5") .|> noext
+        todo = ["A0A7K", "A0A84"]
+        setdiff!(todo, readdir("PH/pgh5"))
+        todo = rand(todo)
+        todos = readdir("PH/hdf5/$todo") .|> noext
         setdiff!(todos, pqin(conn, todos))
         println(length(todos), " left in ", todo)
         if isempty(todos)
