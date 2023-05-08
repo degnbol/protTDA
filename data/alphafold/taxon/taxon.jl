@@ -4,6 +4,9 @@ using CSV, DataFrames
 using Printf
 using LibPQ
 
+ROOT = `git root` |> readchomp
+cd("$ROOT/data/alphafold/taxon")
+
 dfd = CSV.read("categories.dmp", DataFrame; header=[:domain, :species, :tax])
 # A = Archaea
 # B = Bacteria
@@ -99,6 +102,6 @@ end
 
 LibPQ.Connection("dbname=protTDA") do conn
     # assuming that the table is created with create_taxtree.sql and empty.
-    pqinsert(conn, "taxtree", df_tf)
+    pqinsert(conn, "taxtree", df_tree)
 end
 

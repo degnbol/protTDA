@@ -1,0 +1,4 @@
+CREATE TABLE json (
+    acc  VARCHAR(10) PRIMARY KEY,
+    path VARCHAR(64) NOT NULL
+);
