@@ -16,4 +16,5 @@ cd -
 export PATH="$PATH:`git root`/bin/postgresql/bin"
 echo "export PATH=\$PATH:`git root`/bin/postgresql/bin"
 createdb protTDA
+# interactive shell
 psql --dbname=protTDA
