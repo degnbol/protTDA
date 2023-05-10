@@ -30,3 +30,14 @@ CREATE TABLE AF (
     nRep2_t09 INTEGER NOT NULL,
     nRep2_t1  INTEGER NOT NULL
 );
+
+-- was done after reading data
+create index idx_n         on af(n);
+create index idx_taxon     on af(taxon);
+create index idx_meanplddt on af(meanplddt);
+create index idx_maxpers1  on af(maxpers1);
+create index idx_maxpers2  on af(maxpers2);
+create index idx_nrep1     on af(nrep1);
+create index idx_nrep2     on af(nrep2);
+create index idx_nrep1_t1  on af(nrep1_t1);
+create index idx_nrep2_t1  on af(nrep2_t1);

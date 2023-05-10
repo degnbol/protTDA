@@ -39,11 +39,16 @@ rename!(dfp, :rank => :rankp)
 leftjoin!(dfp, df_ranks; on= :tax)
 disallowmissing!(dfp)
 
-
-
 # simplify tree to only contain the following ranks (plus domain):
 # from https://en.wikipedia.org/wiki/Domain_(biology)
 ranks = ["kingdom", "phylum", "class", "order", "family", "genus", "species"]
+
+# add self-ownership, i.e. each tax that is in the ranks we are considering is 
+# parent to itself.
+df_self = df_ranks[df_ranks.rank .∈ Ref(ranks), :]
+df_self.parent = df_self.tax
+df_self.rankp = df_self.rank
+append!(dfp, df_self)
 
 # create species dataframe which will be the lowest tax table.
 # All children nodes and the species nodes themselves will be listed here and 
@@ -52,8 +57,6 @@ ranks = ["kingdom", "phylum", "class", "order", "family", "genus", "species"]
 # taxa higher than species they will be ignored. Even viruses belong to species 
 # so I think it is fine. 
 df_tree = dfp[dfp.rankp .== "species", :]
-uSpecies = df_ranks[df_ranks.rank .== "species", :tax]
-append!(df_tree, DataFrame(tax=uSpecies, parent=uSpecies, rank="species", rankp="species"))
 df_tree = innerjoin(df_tree, dfd; on= :parent => :species)
 df_left = unique(df_tree[!, [:parent, :domain]])
 
@@ -105,6 +108,6 @@ end
 LibPQ.Connection("dbname=protTDA") do conn
     # assuming that the table is created with create_taxtree.sql and empty.
     pqinsert(conn, "taxparent", dfp)
-    pqinsert(conn, "taxtree", df_tree)
+    # pqinsert(conn, "taxtree", df_tree)
 end
 
