@@ -39,6 +39,8 @@ rename!(dfp, :rank => :rankp)
 leftjoin!(dfp, df_ranks; on= :tax)
 disallowmissing!(dfp)
 
+
+
 # simplify tree to only contain the following ranks (plus domain):
 # from https://en.wikipedia.org/wiki/Domain_(biology)
 ranks = ["kingdom", "phylum", "class", "order", "family", "genus", "species"]
@@ -102,6 +104,7 @@ end
 
 LibPQ.Connection("dbname=protTDA") do conn
     # assuming that the table is created with create_taxtree.sql and empty.
+    pqinsert(conn, "taxparent", dfp)
     pqinsert(conn, "taxtree", df_tree)
 end
 

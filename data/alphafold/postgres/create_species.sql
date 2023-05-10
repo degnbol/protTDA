@@ -1,7 +1,7 @@
 CREATE TABLE species as
 SELECT
     parent, domain,
-    count(*)                       as members,
+    count(*)                       as proteins,
     AVG(n)                         as avg_n,
     AVG(maxrep1)                   as avg_maxrep1,
     AVG(maxrep2)                   as avg_maxrep2,
