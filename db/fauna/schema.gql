@@ -1,0 +1,39 @@
+type Ca {
+    x: Float!
+    y: Float!
+    z: Float!
+    cent1: Float!
+    cent2: Float!
+}
+
+type Simplex1 {
+    v1: Ca! @relation
+    v2: Ca! @relation
+}
+
+type Simplex2 {
+    v1: Ca! @relation
+    v2: Ca! @relation
+    v3: Ca! @relation
+}
+
+type Rep1 {
+    birth: Float!
+    death: Float!
+    persistence: Float!
+    simplices: [Simplex1!]!
+}
+
+type Rep2 {
+    birth: Float!
+    death: Float!
+    persistence: Float!
+    simplices: [Simplex2!]!
+}
+
+type AFProt {
+    n: Int!
+    cas: [Ca!]! @relation
+    reps1: [Rep1!]!
+    reps2: [Rep2!]!
+}

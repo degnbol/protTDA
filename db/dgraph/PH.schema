@@ -1,0 +1,24 @@
+filename: string .
+n: int .
+x: [float] .
+y: [float] .
+z: [float] .
+cent1: [float] .
+cent2: [float] .
+bars1: [[float]] .
+bars2: [[float]] .
+reps1: [[[int]]] .
+reps2: [[[int]]] .
+type AFProt {
+    filename: String!
+    n: Int!
+    x: [Float!]!
+    y: [Float!]!
+    z: [Float!]!
+    cent1: [Float!]!
+    cent2: [Float!]!
+    bars1: [[Float!]!]!
+    bars2: [[Float!]!]!
+    reps1: [[[Int!]!]!]!
+    reps2: [[[Int!]!]!]!
+}

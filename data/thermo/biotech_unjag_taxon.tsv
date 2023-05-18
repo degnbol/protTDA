@@ -1,0 +1,26 @@
+Whole cell application	Thermophile	Action	Reference	taxon
+Biofuel production	Caldicellulosiruptor bescii	Xylan degrading activity	Han et al. (2012); Su et al. (2013)	1891658
+Biofuel production	Caldanaerobius polysaccharolyticus	Xylan degrading activity	Han et al. (2012); Su et al. (2013)	1755
+Biofuel production	Thermoanaerobacterium thermosaccharolyticum	Butanol production	Bhandiwad et al. (2013)	1872391
+Biofuel production	Caldicellulosiruptor saccharolyticus	Consolidated bioprocess for anaerobic hydrogen production	Talluri et al. (2013)	1891658
+Biofuel production	Methanoculleus thermophiles	Methane production from coal mine substrates	Lavania et al. (2014)	1872573
+Bioremediation	Geobacillus sp.	Biosorption of toxic metals	Chatterjee et al. (2010); Sar et al. (2013)	33949
+Bioremediation	Anoxybacillus flavithermus	Biosorption of toxic metals	Chatterjee et al. (2010); Sar et al. (2013)	2591003
+Bioremediation	Thermus thermophiles	Biosorption of toxic metals	Chatterjee et al. (2010); Sar et al. (2013)	12915
+Bioremediation	Thermococcus zilligii	Biosorption of toxic metals	Chatterjee et al. (2010); Sar et al. (2013)	41673
+Bioremediation	Thermus scotoductus	Immobilisation of radionuclides	Chernyh et al. (2007)	282676
+Bioremediation	Pyrobaculum. islandicum	Immobilisation of radionuclides	Chernyh et al. (2007)	1506
+Bioremediation	Thermoanaerobacter sp.	Immobilisation of radionuclides	Chernyh et al. (2007)	1755
+Bioremediation	Thermoterrabacterium ferrireducens	Immobilisation of radionuclides	Chernyh et al. (2007)	54265
+Bioremediation	Aeribacillus sp.	Biodegradation of recalcitrant aromatic compounds and hydrocarbons	Mnif et al. (2014)	1872391
+Bioremediation	Geobacillus sp.	Biodegradation of recalcitrant aromatic compounds and hydrocarbons	Mnif et al. (2014)	1891658
+Bioremediation	Anoxybacillus sp.	Degradation of azo-dyes	Deive et al. (2010)	1872573
+Bioleaching	Sulfobacillus sp.	Enhanced Cu extraction from chalcopyrite	Abdollahi et al. (2014); d'Hugues et al. (2002); Qin et al. (2013)	33949
+Bioleaching	Ferroplasma sp.	Enhanced Cu extraction from chalcopyrite	Abdollahi et al. (2014); d'Hugues et al. (2002); Qin et al. (2013)	2591003
+Bioleaching	Acidianus infernus	Enhanced Cu extraction from chalcopyrite	Abdollahi et al. (2014); d'Hugues et al. (2002); Qin et al. (2013)	12915
+Bioleaching	Acidianus brierleyi	Metal solubilisation from nickel-copper sulphide	Li et al. (2014)	41673
+Bioleaching	Acidianus manzaensis	Metal solubilisation from nickel-copper sulphide	Li et al. (2014)	282676
+Bioleaching	Metallosphaera sedula	Metal solubilisation from nickel-copper sulphide	Li et al. (2014)	43687
+Bioleaching	Sulfolobus metallicus	Metal solubilisation from nickel-copper sulphide	Li et al. (2014)	47303
+Food, animal feed, compost for agriculture, cultivation production	Clostridium sp.	Improved compost quality by cellulolytic activity	Basen et al. (2014); Han et al. (2012); Sizova et al. (2011)	1506
+Food, animal feed, compost for agriculture, cultivation production	Caldicellulosiruptor sp.	Improved compost quality by cellulolytic activity	Basen et al. (2014); Han et al. (2012); Sizova et al. (2011)	
