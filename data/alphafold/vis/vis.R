@@ -10,7 +10,11 @@ library(graphics)
 dtn = fread("./taxNodes.tsv.gz")
 dte = fread("./taxEdges.tsv.gz")
 lRanks = c("domain", "kingdom", "phylum", "class", "order", "family", "genus", "species")
+lDomains = c("B", "E", "A", "V")
 dtn[, rank:=factor(rank, levels=lRanks)]
+dtn[, domain:=factor(domain, levels=lDomains)]
+# too few viruses too see
+dtn = dtn[domain!="V"]
 
 total = dtn[id=="O", proteins]
 dtn = dtn[id != 'O']
@@ -23,6 +27,7 @@ dtn[, w:=children/sum(children), by=rank]
 setorder(dtn, -w_pp)
 
 dte[, child:=as.character(child)]
+
 dten = merge(dtn, dte, by.x="id", by.y="child", all.x=TRUE)
 dten[is.na(parent), parent:=domain]
 
@@ -31,7 +36,7 @@ dten[is.na(parent), parent:=domain]
 # # have domain and kingdom share innermost circle
 # domainsWithKingdom = dten[rank=="kingdom", unique(parent)]
 # dten[rank%in%lRanks[1:2] & domain%in%domainsWithKingdom, h:=h/2]
-
+#
 # # set x (xmin) to cumsum for all children to a given parent, starting at the x of the parent.
 # dten[, x:=cumsum(c(0,w_pp))[1:.N], by=parent]
 # dten[,y:=h] 
@@ -49,27 +54,25 @@ dten[is.na(parent), parent:=domain]
 #     dten[,y_parent:=NULL]
 #     dten[,y_parent2:=NULL]
 # }
-
+#
 # plt = ggplot(dten[rank%in%lRanks[1:6]],
 #        aes(xmin=x, ymin=y-h, ymax=y, xmax=x+w_pp, fill=domain, alpha=avg_maxpers1)) +
 #     geom_rect() +
 #     coord_polar(theta="x") +
 #     theme_void()
-
+#
 # ggsave("pie.png", plt, width=10, height=10, dpi=300)
 
 setorder(dten, -"proteins")
 
-dten[, s:=avg_maxpers1/max(dten$avg_maxpers1)]
-dten[, s:=avg_maxpers1/avg_n]
-dten[, s:=s/max(s)]
-dten[, s:=pmin(s, 0.4)]
-dten[, s:=s/max(s)]
-
-dten[domain=="A", col:=hsv(  2/360, s, 1)]
-dten[domain=="B", col:=hsv( 96/360, s, 1)]
-dten[domain=="E", col:=hsv(196/360, s, 1)]
-dten[domain=="V", col:=hsv(309/360, s, 1)]
+dten[, s:=avg_maxpers1_pp/avg_n]
+# hist(dten$s)
+# 6 bins
+dten[, sBin:=pmin(floor(s*4/0.05), 6)/6]
+dten[domain=="A", col:=hsv(  2/360, sBin, 1)]
+dten[domain=="B", col:=hsv( 96/360, sBin, 1)]
+dten[domain=="E", col:=hsv(196/360, sBin, 1)]
+# dten[domain=="V", col:=hsv(309/360, s, 1)]
 
 # circle packing that centers.
 circlePack = function(vals, sizetype) {
@@ -127,12 +130,19 @@ getVerts = function(DT, n) {
     data.table(circleLayoutVertices(DT, xysizecols=c("x", "y", "r"), idcol="id", npoints=n))
 }
 
+# add fake label nodes
+# dten = rbind(dten,
+#              dten[rank=="domain", .(id=label, parent=id, rank="label", label, r=4000)],
+#              fill=TRUE
+# )
+
 # annotate parent rank
+if("rank_parent"%in%names(dten)) {dten[, rank_parent:=NULL]}
 dten = merge(dten, dten[,.(id,rank)], by.x="parent", by.y="id", all.x=TRUE, suffixes=c("", "_parent"))
 dten[is.na(rank_parent), rank_parent:="origin"]
 
 # set initial radii and then update them going up
-dten[, r:=0]
+dten[rank!="label", r:=0]
 # for species, area == #proteins
 dten[rank=="species", r:=sqrt(proteins/pi)]
 
@@ -146,10 +156,26 @@ for (rnk in c(rev(lRanks[2:length(lRanks)-1]), "origin")) {
     dten[dtt, on=c(id="parent"), r := pmax(r, i.r)] # r (not i.r) should always be zero actually
 }
 
-# from top, place children inside parent node.
-parents = c("A", "B", "E", "V")
+# rotate within each node so we can overlap domains and save space and for a more varied look.
+rot = function(x, y, theta) {
+    list(x=x*cos(theta) - y*sin(theta), y=x*sin(theta) + y*cos(theta))
+}
+
+rotB = pi/4
+rotE = pi/3.5
+rotA = pi/4
+
+parents = lDomains
 for(i in 1:99) {
     cat(i, "\n")
+    # theta = custom overall domain rotation + 1/7 of a full rotation for each rank
+    dten[parent%in%parents & domain=="B", c("x", "y") := rot(x, y, rotB)]
+    dten[parent%in%parents & domain=="E", c("x", "y") := rot(x, y, rotE)]
+    dten[parent%in%parents & domain=="A", c("x", "y") := rot(x, y, rotA)]
+    rotB=rotB+2*pi/7
+    rotE=rotE+2*pi/7
+    rotA=rotA+2*pi/7
+    # from top, place children inside parent node.
     dtt = merge(dten[parent%in%parents, .(id,x,y,r), by=parent],
                 dten[id%in%parents, .(x, y, r), by=id], by.x="parent", by.y="id", suffixes=c("", "_parent"))
     if (nrow(dtt) == 0) break
@@ -162,35 +188,46 @@ for(i in 1:99) {
     parents = dtt$id
 }
 
+# move E to be below and slightly overlapping B
+xyB = dten[id=="B", .(x,y)]
+xyE = dten[id=="E", .(x,y)]
+ErelB = (xyE - xyB)*.8
+relB = xyB + rot(ErelB$x, ErelB$y, -pi/2.5) - xyE
+dten[domain=="E", c("x", "y") := .(x, y) + relB]
+# do the same for A relative to E
+xyE = dten[id=="E", .(x,y)]
+xyA = dten[id=="A", .(x,y)]
+ArelE = (xyA - xyE)*.7
+relE = xyE + rot(ArelE$x, ArelE$y, -pi/1.7) - xyA
+dten[domain=="A", c("x", "y") := .(x, y) + relE]
+
+# build polygons
 dtv = rbind(getVerts(dten[100 <= r]     , 160),
             getVerts(dten[(10 <= r) & (r < 100)], 40),
+            # getVerts(dten[rank=="label"], 40) ,
             getVerts(dten[(1 <= r ) & (r < 10 )], 16),
             getVerts(dten[r < 1]            ,   6))
-dtp = merge(dtv, dten[, .(rank, id, col, cor_nrep1_pp)], by="id")
+dtp = merge(dtv, dten[, .(domain, rank, id, col, cor_nrep1_pp)], by="id")
 cat(nrow(dtp), '\n')
+setorder(dtp, "domain")
 
-plt = ggplot(mapping=aes(x=x, y=y, group=id, fill=col, linewidth=as.numeric(rank), color=log(1-cor_nrep1_pp))) +
-    geom_polygon(data=dtp[rank=="domain"]) +
-    geom_polygon(data=dtp[rank=="kingdom"]) +
-    geom_polygon(data=dtp[rank=="phylum"]) +
-    geom_polygon(data=dtp[rank=="class"]) +
-    geom_polygon(data=dtp[rank=="order"]) +
-    geom_polygon(data=dtp[rank=="family"]) +
-    geom_polygon(data=dtp[rank=="genus"]) +
-    geom_polygon(data=dtp[rank=="species"]) +
+plt = ggplot(mapping=aes(x=x, y=y, group=id, fill=col, linewidth=rank, color=log(1-cor_nrep1_pp)))
+plt=plt+ geom_polygon(data=dtp[id=="B"]) + geom_polygon(data=dtp[id=="E"]) + geom_polygon(data=dtp[id=="A"])
+for (rnk in lRanks[2:length(lRanks)]) plt=plt+geom_polygon(data=dtp[rank==rnk])
+plt=plt+
+    # geom_text(data=dten[rank=="label"], mapping=aes(label=label, size=r), color="black") +
     scale_fill_identity() +
-    scale_linewidth_continuous(range=c(.2, 0.01)) +
-    scale_color_gradient(low="black", high="yellow") +
+    scale_linewidth_manual(values=c(0., .3, .2, .1, .05, .025, 0.01, 0.005), breaks=lRanks, guide="none") +
+    scale_color_gradient(low="black", high="yellow", guide="none") +
     coord_fixed() +
     theme_void()
+plt
 
-ggsave("pack_prnt.jpg", plt, width=20, height=20, dpi=1000)
+ggsave("pack_bin_pp.jpg", plt, width=210, height=297, units="mm", dpi=1000)
 
-# TODO: fix weird overlapping
 # TODO: add labels inside each area by adding fake label nodes e.g. with 
 # size=mean of the real child nodes. Only do this for nodes of certain size.
 # TODO: plot 3 domains separately so we can let them overlap a bit
-
 
 # maxCor = dten[!is.na(cor_nrep1_pp), max(1/cor_nrep1_pp-1)]
 # clerp <- function (vals) {
@@ -213,7 +250,6 @@ ggsave("pack_prnt.jpg", plt, width=20, height=20, dpi=1000)
 #     plt=plt+ geom_scattermost(dtenr[, .(x+width/2,y-.5)], col=hsv(h=dtenr$hue, s=1, v=(dtenr$alpha+1)/2, alpha=0.5), pointsize=9-i, pixels=c(2000,2000))
 # }
 # plt + coord_polar() + theme_void()
-
 
 # treemap(dtf=, index=lRanks[1:3], vSize="proteins", vColor="avg_maxpers1")
 
