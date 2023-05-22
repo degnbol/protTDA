@@ -7,6 +7,70 @@ library(graphics)
 # library(ggchromatic)
 # library(treemap)
 
+green = "#5fb12a"
+blue  = "#267592"
+red   = "#e23a34"
+
+# circle packing that centers.
+circlePack = function(vals, sizetype) {
+    df = circleProgressiveLayout(vals, sizetype=sizetype)
+    x=df$x
+    y=df$y
+    r=df$radius
+    x_c = (min(x-r) + max(x+r)) /2
+    y_c = (min(y-r) + max(y+r)) /2
+    data.table(x=x-x_c, y=y-y_c, r=r)
+}
+
+# circle packing that centers and does one round of optimising position.
+circlePackOpt = function(vals, sizetype) {
+    df = circleProgressiveLayout(vals, sizetype=sizetype)
+    x=df$x
+    y=df$y
+    r=df$radius
+    x_span = c(min(x-r), max(x+r))
+    y_span = c(min(y-r), max(y+r))
+    r_span = max(x_span[2]-x_span[1], y_span[2]-y_span[1]) / 2
+    DT = data.table(x=x-mean(x_span), y=y-mean(y_span), r=r)
+    # improve centering by taking average point between box estimate and the worst outlier
+    dtt = DT[which.max(sqrt(x^2+y^2)+r), .(x, y, r, len=sqrt(x^2+y^2))]
+    if(dtt$len > 0) {
+        r_parent = dtt$len + dtt$r
+        # how far to adjust in direction of outlier
+        r_trans = r_parent - (r_span + r_parent) / 2
+        trans = dtt[, .(x,y)] * (r_trans / dtt$len)
+        DT[,c("x", "y") := .(x+trans$x, y+trans$y)]
+    }
+    DT
+}
+
+# circle packing that centers which shuffles and retries to find smallest fit. 
+circlePackRnd = function(vals, sizetype, retries=4) {
+    best_r_parent = Inf
+    for (i in 1:retries) {
+        idx = sample(1:length(vals))
+        df = circleProgressiveLayout(vals[idx], sizetype=sizetype)
+        x=df$x
+        y=df$y
+        r=df$radius
+        df = data.table(x=x-(min(x-r)+max(x+r))/2, y=y-(min(y-r)+max(y+r))/2, r=r)
+        r_parent = df[, max(sqrt(x^2+y^2)+r)]
+        if (r_parent < best_r_parent) {
+            best_r_parent = r_parent
+            DT = df[order(idx)] # unshuffle + remember
+        }
+    }
+    DT
+}
+
+getVerts = function(DT, n) {
+    data.table(circleLayoutVertices(DT, xysizecols=c("x", "y", "r"), idcol="id", npoints=n))
+}
+
+rot = function(x, y, theta) {
+    list(x=x*cos(theta) - y*sin(theta), y=x*sin(theta) + y*cos(theta))
+}
+
 dtn = fread("./taxNodes.tsv.gz")
 dte = fread("./taxEdges.tsv.gz")
 lRanks = c("domain", "kingdom", "phylum", "class", "order", "family", "genus", "species")
@@ -74,62 +138,6 @@ dten[domain=="B", col:=hsv( 96/360, sBin, 1)]
 dten[domain=="E", col:=hsv(196/360, sBin, 1)]
 # dten[domain=="V", col:=hsv(309/360, s, 1)]
 
-# circle packing that centers.
-circlePack = function(vals, sizetype) {
-    df = circleProgressiveLayout(vals, sizetype=sizetype)
-    x=df$x
-    y=df$y
-    r=df$radius
-    x_c = (min(x-r) + max(x+r)) /2
-    y_c = (min(y-r) + max(y+r)) /2
-    data.table(x=x-x_c, y=y-y_c, r=r)
-}
-
-# circle packing that centers and does one round of optimising position.
-circlePackOpt = function(vals, sizetype) {
-    df = circleProgressiveLayout(vals, sizetype=sizetype)
-    x=df$x
-    y=df$y
-    r=df$radius
-    x_span = c(min(x-r), max(x+r))
-    y_span = c(min(y-r), max(y+r))
-    r_span = max(x_span[2]-x_span[1], y_span[2]-y_span[1]) / 2
-    DT = data.table(x=x-mean(x_span), y=y-mean(y_span), r=r)
-    # improve centering by taking average point between box estimate and the worst outlier
-    dtt = DT[which.max(sqrt(x^2+y^2)+r), .(x, y, r, len=sqrt(x^2+y^2))]
-    if(dtt$len > 0) {
-        r_parent = dtt$len + dtt$r
-        # how far to adjust in direction of outlier
-        r_trans = r_parent - (r_span + r_parent) / 2
-        trans = dtt[, .(x,y)] * (r_trans / dtt$len)
-        DT[,c("x", "y") := .(x+trans$x, y+trans$y)]
-    }
-    DT
-}
-
-# circle packing that centers which shuffles and retries to find smallest fit. 
-circlePackRnd = function(vals, sizetype, retries=4) {
-    best_r_parent = Inf
-    for (i in 1:retries) {
-        idx = sample(1:length(vals))
-        df = circleProgressiveLayout(vals[idx], sizetype=sizetype)
-        x=df$x
-        y=df$y
-        r=df$radius
-        df = data.table(x=x-(min(x-r)+max(x+r))/2, y=y-(min(y-r)+max(y+r))/2, r=r)
-        r_parent = df[, max(sqrt(x^2+y^2)+r)]
-        if (r_parent < best_r_parent) {
-            best_r_parent = r_parent
-            DT = df[order(idx)] # unshuffle + remember
-        }
-    }
-    DT
-}
-
-getVerts = function(DT, n) {
-    data.table(circleLayoutVertices(DT, xysizecols=c("x", "y", "r"), idcol="id", npoints=n))
-}
-
 # add fake label nodes
 # dten = rbind(dten,
 #              dten[rank=="domain", .(id=label, parent=id, rank="label", label, r=4000)],
@@ -157,10 +165,6 @@ for (rnk in c(rev(lRanks[2:length(lRanks)-1]), "origin")) {
 }
 
 # rotate within each node so we can overlap domains and save space and for a more varied look.
-rot = function(x, y, theta) {
-    list(x=x*cos(theta) - y*sin(theta), y=x*sin(theta) + y*cos(theta))
-}
-
 rotB = pi/4
 rotE = pi/3.5
 rotA = pi/4
@@ -201,10 +205,22 @@ ArelE = (xyA - xyE)*.7
 relE = xyE + rot(ArelE$x, ArelE$y, -pi/1.7) - xyA
 dten[domain=="A", c("x", "y") := .(x, y) + relE]
 
+# use outline as domain, instead of circle to save space
+dtbg = merge(dten[rank_parent=="domain", .(domain=domain, rank="domain", id=paste("domain", id), x, y, r=r+1100)],
+             dten[rank=="domain", .(domain, col)], by="domain") # add color with a merge
+dten = rbind(dten[rank!="domain"], dtbg, fill=TRUE)
+# if we are doing outline, then move domains into nicer locations
+dten[domain=="E", x := x-5000]
+dten[domain=="A", x := x-7500]
+
+# zoom of homo sapiens
+dtz = dten[label=="Homo sapiens"]
+dtz[, c("id", "x", "y", "r") := .("zoom", 13000, -15000, 6000)]
+dten = rbind(dten, dtz, fill=TRUE)
+
 # build polygons
 dtv = rbind(getVerts(dten[100 <= r]     , 160),
-            getVerts(dten[(10 <= r) & (r < 100)], 40),
-            # getVerts(dten[rank=="label"], 40) ,
+            getVerts(dten[(10 <= r) & (r < 100)], 40) ,
             getVerts(dten[(1 <= r ) & (r < 10 )], 16),
             getVerts(dten[r < 1]            ,   6))
 dtp = merge(dtv, dten[, .(domain, rank, id, col, cor_nrep1_pp)], by="id")
@@ -212,22 +228,27 @@ cat(nrow(dtp), '\n')
 setorder(dtp, "domain")
 
 plt = ggplot(mapping=aes(x=x, y=y, group=id, fill=col, linewidth=rank, color=log(1-cor_nrep1_pp)))
-plt=plt+ geom_polygon(data=dtp[id=="B"]) + geom_polygon(data=dtp[id=="E"]) + geom_polygon(data=dtp[id=="A"])
+plt=plt+
+    geom_polygon(data=dtp[rank=="domain" & domain=="B"]) +
+    geom_polygon(data=dtp[rank=="domain" & domain=="E"]) +
+    geom_polygon(data=dtp[rank=="domain" & domain=="A"])
 for (rnk in lRanks[2:length(lRanks)]) plt=plt+geom_polygon(data=dtp[rank==rnk])
 plt=plt+
+    annotate("text", label="Bacteria", x=-40000, y=24000, size=6, color=green, hjust=0) +
+    annotate("text", label="Eukaryote", x=-40000, y=-26000, size=6, color=blue, hjust=0) +
+    annotate("text", label="Archaea", x=1000, y=-35000, size=6, color=red, hjust=0) +
     # geom_text(data=dten[rank=="label"], mapping=aes(label=label, size=r), color="black") +
     scale_fill_identity() +
     scale_linewidth_manual(values=c(0., .3, .2, .1, .05, .025, 0.01, 0.005), breaks=lRanks, guide="none") +
     scale_color_gradient(low="black", high="yellow", guide="none") +
-    coord_fixed() +
-    theme_void()
+    coord_fixed() #+
+    #theme_void()
 plt
 
-ggsave("pack_bin_pp.jpg", plt, width=210, height=297, units="mm", dpi=1000)
+ggsave("pack_zoom.jpg", plt, width=210, height=297, units="mm", dpi=1000)
 
-# TODO: add labels inside each area by adding fake label nodes e.g. with 
-# size=mean of the real child nodes. Only do this for nodes of certain size.
-# TODO: plot 3 domains separately so we can let them overlap a bit
+# TODO: rotate E so human is on the right.
+# TODO: take 3 largest B phylum, calc gap location, add gap node to fill bg.
 
 # maxCor = dten[!is.na(cor_nrep1_pp), max(1/cor_nrep1_pp-1)]
 # clerp <- function (vals) {
