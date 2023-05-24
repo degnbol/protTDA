@@ -1,11 +1,11 @@
 #!/usr/bin/env Rscript
 suppressPackageStartupMessages(library(ggplot2))
+library(geomtextpath)
 suppressPackageStartupMessages(library(data.table))
 library(packcircles)
-# library(scattermore)
 library(graphics)
 # library(ggchromatic)
-# library(treemap)
+library(ggnewscale)
 
 green = "#5fb12a"
 blue  = "#267592"
@@ -71,8 +71,29 @@ rot = function(x, y, theta) {
     list(x=x*cos(theta) - y*sin(theta), y=x*sin(theta) + y*cos(theta))
 }
 
+# Calc outer tangent xys given a smaller and a larger circle (in that order).
+# https://en.wikipedia.org/wiki/Tangent_lines_to_circles#Outer_tangent
+outerTangents = function(x1, y1, x2, y2, r, R) {
+    gamma = -atan((y2 - y1) / (x2 - x1))
+    beta  = asin((R-r) / sqrt((x2-x1)^2 + (y2-y1)^2))
+    beta  = c(beta, -beta)
+    alpha = gamma - beta
+    data.table(x=c(x1+r*sin(alpha[1]), x2+R*sin(alpha[1]), x2-R*sin(alpha[2]), x1-r*sin(alpha[2])),
+               y=c(y1+r*cos(alpha[1]), y2+R*cos(alpha[1]), y2-R*cos(alpha[2]), y1-r*cos(alpha[2])))
+}
+# sometimes one works and not the other, I'm sure there's a smarter way to choose signs on beta but alas.
+outerTangents2 = function(x1, y1, x2, y2, r, R) {
+    gamma = -atan((y2 - y1) / (x2 - x1))
+    beta  = asin((R-r) / sqrt((x2-x1)^2 + (y2-y1)^2))
+    beta  = c(-beta, beta)
+    alpha = gamma - beta
+    data.table(x=c(x1+r*sin(alpha[1]), x2+R*sin(alpha[1]), x2-R*sin(alpha[2]), x1-r*sin(alpha[2])),
+               y=c(y1+r*cos(alpha[1]), y2+R*cos(alpha[1]), y2-R*cos(alpha[2]), y1-r*cos(alpha[2])))
+}
+
 dtn = fread("./taxNodes.tsv.gz")
 dte = fread("./taxEdges.tsv.gz")
+dt.human = fread("./human.tsv.gz")
 lRanks = c("domain", "kingdom", "phylum", "class", "order", "family", "genus", "species")
 lDomains = c("B", "E", "A", "V")
 dtn[, rank:=factor(rank, levels=lRanks)]
@@ -95,37 +116,20 @@ dte[, child:=as.character(child)]
 dten = merge(dtn, dte, by.x="id", by.y="child", all.x=TRUE)
 dten[is.na(parent), parent:=domain]
 
-# setorder(dten, -w_pp)
-# dten[, h:=1/cor_nrep1]
-# # have domain and kingdom share innermost circle
-# domainsWithKingdom = dten[rank=="kingdom", unique(parent)]
-# dten[rank%in%lRanks[1:2] & domain%in%domainsWithKingdom, h:=h/2]
-#
-# # set x (xmin) to cumsum for all children to a given parent, starting at the x of the parent.
-# dten[, x:=cumsum(c(0,w_pp))[1:.N], by=parent]
-# dten[,y:=h] 
-#
-# for(rnk in lRanks) {
-#     dten = merge(dten, dten[,.(id,x,y)], all.x=TRUE, by.x="parent", by.y="id", suffixes=c("", "_parent"))
-#     dten[rank=="domain", x_parent:=0]
-#     dten = merge(dten, dten[, .(x_parent2=max(x), y_parent2=max(y)), by=rank], by="rank", all.x=TRUE)
-#     dten[is.na(x_parent), x_parent:=x_parent2]
-#     dten[is.na(y_parent), y_parent:=y_parent2]
-#     dten[rank==rnk, x:=x+x_parent]
-#     dten[rank==rnk, y:=y+y_parent]
-#     dten[,x_parent:=NULL]
-#     dten[,x_parent2:=NULL]
-#     dten[,y_parent:=NULL]
-#     dten[,y_parent2:=NULL]
-# }
-#
-# plt = ggplot(dten[rank%in%lRanks[1:6]],
-#        aes(xmin=x, ymin=y-h, ymax=y, xmax=x+w_pp, fill=domain, alpha=avg_maxpers1)) +
-#     geom_rect() +
-#     coord_polar(theta="x") +
-#     theme_void()
-#
-# ggsave("pie.png", plt, width=10, height=10, dpi=300)
+# recalc avg_maxpers1_pp
+dten[, prots := 0]
+dten[, maxpers1_pp := 0]
+dten[rank=="species", prots := proteins]
+dten[rank=="species", maxpers1_pp := avg_maxpers1_pp * prots]
+ids = dten[rank=="species", id]
+for(i in 1:99) {
+    cat(i, '\n')
+    dtt = dten[id%in%ids, .(prots=sum(prots), maxpers1_pp=sum(maxpers1_pp)), by=parent]
+    if(nrow(dtt) == 0) break
+    dten[dtt, on=c(id="parent"), c("prots", "maxpers1_pp") := .(prots+i.prots, maxpers1_pp+i.maxpers1_pp)]
+    ids = dtt$parent
+}
+# dten[rank!="species", avg_maxpers1_pp := maxpers1_pp/prots]
 
 setorder(dten, -"proteins")
 
@@ -137,12 +141,6 @@ dten[domain=="A", col:=hsv(  2/360, sBin, 1)]
 dten[domain=="B", col:=hsv( 96/360, sBin, 1)]
 dten[domain=="E", col:=hsv(196/360, sBin, 1)]
 # dten[domain=="V", col:=hsv(309/360, s, 1)]
-
-# add fake label nodes
-# dten = rbind(dten,
-#              dten[rank=="domain", .(id=label, parent=id, rank="label", label, r=4000)],
-#              fill=TRUE
-# )
 
 # annotate parent rank
 if("rank_parent"%in%names(dten)) {dten[, rank_parent:=NULL]}
@@ -166,16 +164,24 @@ for (rnk in c(rev(lRanks[2:length(lRanks)-1]), "origin")) {
 
 # rotate within each node so we can overlap domains and save space and for a more varied look.
 rotB = pi/4
-rotE = pi/3.5
+rotE = pi*1.28
 rotA = pi/4
 
 parents = lDomains
 for(i in 1:99) {
     cat(i, "\n")
     # theta = custom overall domain rotation + 1/7 of a full rotation for each rank
+    # rotation is counter-clockwise here
     dten[parent%in%parents & domain=="B", c("x", "y") := rot(x, y, rotB)]
     dten[parent%in%parents & domain=="E", c("x", "y") := rot(x, y, rotE)]
     dten[parent%in%parents & domain=="A", c("x", "y") := rot(x, y, rotA)]
+    # custom rotations of Mammalia, Primates related to the zoom on human
+    # and Ascomycota related to showing yeast
+    dten[parent%in%parents & parent=="40674", c("x", "y") := rot(x, y, pi)]
+    dten[parent%in%parents & parent=="9443", c("x", "y") := rot(x, y, pi*.75)]
+    dten[parent%in%parents & parent=="9404", c("x", "y") := rot(x, y, pi)]
+    dten[parent%in%parents & parent=="4890", c("x", "y") := rot(x, y, pi/2)] # Ascomycota
+    dten[parent%in%parents & parent=="1236", c("x", "y") := rot(x, y, -pi*.55)] # Gammaproteobacteria
     rotB=rotB+2*pi/7
     rotE=rotE+2*pi/7
     rotA=rotA+2*pi/7
@@ -206,71 +212,145 @@ relE = xyE + rot(ArelE$x, ArelE$y, -pi/1.7) - xyA
 dten[domain=="A", c("x", "y") := .(x, y) + relE]
 
 # use outline as domain, instead of circle to save space
-dtbg = merge(dten[rank_parent=="domain", .(domain=domain, rank="domain", id=paste("domain", id), x, y, r=r+1100)],
-             dten[rank=="domain", .(domain, col)], by="domain") # add color with a merge
-dten = rbind(dten[rank!="domain"], dtbg, fill=TRUE)
-# if we are doing outline, then move domains into nicer locations
-dten[domain=="E", x := x-5000]
-dten[domain=="A", x := x-7500]
+dtbg = dten[rank_parent=="domain", .(domain=domain, rank="domain", id=paste("domain", id), x, y, r=r+1100)]
+# add fake nodes to fill gaps in bacteria outline
+dtbg = rbind(dtbg, data.table(domain="B", rank="domain", id=c("gap1", "gap2"), x=c(-10000, -15000), y=c(1000, 10000), r=3000))
+# add color with a merge
+dtbg = merge(dtbg, dten[rank=="domain", .(domain, col)], by="domain")
+# add everything that is not outline
+dtbg = rbind(dten[rank!="domain"], dtbg, fill=TRUE)
+# move domains into nicer locations
+dtbg[domain=="E", x := x-7000]
+dtbg[domain=="E", y := y+1600]
+dtbg[domain=="A", x := x-7300]
 
 # zoom of homo sapiens
-dtz = dten[label=="Homo sapiens"]
-dtz[, c("id", "x", "y", "r") := .("zoom", 13000, -15000, 6000)]
-dten = rbind(dten, dtz, fill=TRUE)
+dths = dtbg[id=="9606"]
+dtz = copy(dths)
+dtz[, c("id", "x", "y", "r") := .("zoom", 9000, -17500, 6000)]
+dtbg = rbind(dtbg[id!="zoom"], dtz, fill=TRUE)
+# zoom rect (not quite a rectangle) showing shaded area from human node to zoomed version.
+zoom.rect = outerTangents(dths$x, dths$y, dtz$x, dtz$y, dths$r, dtz$r)
+
+# circle pack zoom of proteins
+dt.prot = cbind(dt.human, circlePack(dt.human$n, "area"))
+# rotate to get a nicer heme zoom cone (no cone-cone overlap)
+dt.prot[, c("x", "y") := rot(x, y, pi*.28)]
+# scale and place
+scl.prot = dtz$r / dt.prot[, max(sqrt(x^2+y^2)+r)]
+dt.prot[, c("x", "y", "r") := .(x*scl.prot + dtz$x, y*scl.prot + dtz$y, r*scl.prot)]
+dt.prot[, s:=maxpers1/n]
+# hist(dt.prot$s)
+# 6 bins exactly like for the averaged nodes
+dt.prot[, sBin:=pmin(floor(s*4/0.05), 6)/6]
+dt.prot[, col:=hsv(196/360, sBin, 1)]
+dtbg = rbind(dtbg[rank!="protein"], dt.prot[, .(id=acc, x, y, r, col, rank="protein")], fill=TRUE)
+
+# further zoom on hemoglobin subunit alpha
+dt.heme = dt.prot[acc=="P69905"]
+dtz2 = copy(dt.heme)
+dtz2[, c("id", "x", "y", "r") := .("zoom2", 12500, -29000, 4000)]
+dtbg = rbind(dtbg[id!="zoom2"], dtz2, fill=TRUE)
+# zoom rect (not quite a rectangle) showing shaded area from zoom node to heme zoom.
+zoom.rect2 = outerTangents(dt.heme$x, dt.heme$y, dtz2$x, dtz2$y, dt.heme$r, dtz2$r)
+
 
 # build polygons
-dtv = rbind(getVerts(dten[100 <= r]     , 160),
-            getVerts(dten[(10 <= r) & (r < 100)], 40) ,
-            getVerts(dten[(1 <= r ) & (r < 10 )], 16),
-            getVerts(dten[r < 1]            ,   6))
-dtp = merge(dtv, dten[, .(domain, rank, id, col, cor_nrep1_pp)], by="id")
+dtv = rbind(getVerts(dtbg[100 <= r]     , 160),
+            getVerts(dtbg[(10 <= r) & (r < 100)], 40)   ,#)#,
+            getVerts(dtbg[(1 <= r ) & (r < 10 )], 16)  ,#)#,
+            getVerts(dtbg[r < 1]            ,   6))
+dtp = merge(dtv, dtbg[, .(domain, rank, id, col, cor_nrep1_pp)], by="id")
 cat(nrow(dtp), '\n')
 setorder(dtp, "domain")
 
-plt = ggplot(mapping=aes(x=x, y=y, group=id, fill=col, linewidth=rank, color=log(1-cor_nrep1_pp)))
+dt.lab = dtbg[(rank%in%lRanks[2:4] & r>2000) | (label%in%c("Nematoda")), .(id, domain, x, y, r, label, rot=0, vjust=1.1, fontface="plain")]
+# add homo sapiens
+dt.lab = rbind(dt.lab, dtbg[label=="Homo sapiens", .(id, domain, x=dtz$x, y=dtz$y, r=dtz$r, label, rot=0, vjust=1.2, fontface="italic")])
+# add heme
+dt.lab = rbind(dt.lab, dtz2[, .(id, domain="E", x, y, r, label="Hemoglobin subunit alpha", rot=pi, vjust=1.2, fontface="plain")])
+# textcolor
+dt.lab[domain=="B", col:=green]
+dt.lab[domain=="E", col:=blue]
+dt.lab[domain=="A", col:=red]
+# custom rotations. 0 is up, values are clockwise radians.
+dt.lab[domain=="A", rot:=pi]
+dt.lab.rot = c(
+    "Fungi",               -3/4 ,
+    "Pseudomonadota",      -1/2 ,
+    "Planctomycetota",     .35  ,
+    "Clostridia",          -.6  ,
+    "Bacilli",             -1/2 ,
+    "Alphaproteobacteria", -.57 ,
+    "Betaproteobacteria",  1/4  ,
+    "Gammaproteobacteria", .6   ,
+    "Ascomycota",          .53  ,
+    "Bacillota",           1/3  ,
+    "Nematoda",            -2/3 ,
+    "Flavobacteriia",      -.45  ,
+    "Actinomycetes",       -1/3 ,
+    "Mammalia",             1 ,
+    "Aves",                 1/4 ,
+    "Insecta",              1/4 ,
+    "Chordata",            -.55 
+)
+dt.lab.rot = data.table(label=dt.lab.rot[seq(1, length(dt.lab.rot), by=2)],
+                        rot  =pi*as.numeric(dt.lab.rot[seq(2, length(dt.lab.rot), by=2)]))
+dt.lab[dt.lab.rot, on="label", rot := i.rot]
+dt.lab[label=="Bacteroidota",   c("rot", "vjust") := .(pi/ 3, 0)]
+dt.lab[label=="Actinomycetota", c("rot", "vjust") := .(pi*.3, 0)]
+# filter out labels if there is no space
+dt.lab = dt.lab[!label%in%c("Streptophyta", "Arthropoda", "Cyanophyceae", "Bacteroidia", "Magnoliopsida", "Actinomycetes")]
+# shorten some label names
+dt.lab[label=="Flavobacteriia",  label:="Flavo-"]
+dt.lab[label=="Cyanobacteriota", label:="Cyano-"]
+dt.lab[label=="Planctomycetota", label:="Plancto-"]
+# calc curve ends
+dt.lab[, x1:=x+r*sin(rot+pi/2)]
+dt.lab[, x2:=x+r*sin(rot-pi/2)]
+dt.lab[, y1:=y+r*cos(rot+pi/2)]
+dt.lab[, y2:=y+r*cos(rot-pi/2)]
+
+# add some labels for species of interest
+soi = c("Escherichia coli", "Saccharomyces cerevisiae", "Pyrococcus furiosus")
+dt.species = dtbg[label%in%soi]
+dt.species[, c("x2", "y2") := .(x, y)]
+# sort
+setkey(dt.species, "label")
+dt.species = dt.species[soi]
+dt.species$x   = c(-29000, -27000,    500)
+dt.species$y   = c(-20000, -31000, -43000)
+dt.species$gap = c(.18, .3, .39)
+dt.species[, c("x1", "y1") := .(x*(1-gap)+x2*gap, y*(1-gap)+y2*gap)]
+dt.species[, label:=sub(" ", "\n", label)]
+
+plt = ggplot(mapping=aes(x=x, y=y))
+# draw domain outline
+plt=plt+ geom_polygon(data=dtp[rank=="domain"], mapping=aes(fill=col, group=id))
+for (rnk in lRanks[2:8]) plt=plt+geom_polygon(data=dtp[rank==rnk], mapping=aes(fill=col, group=id, linewidth=rank, color=log(1-cor_nrep1_pp)))
+plt=plt+geom_polygon(data=zoom.rect, fill=blue, alpha=0.3)
+# if we use zoom shadow, then we need to draw human on top
+plt=plt+geom_polygon(data=dtp[id%in%c(dths$id, "zoom")], mapping=aes(fill=col, group=id))
+plt=plt+geom_polygon(data=dtp[rank=="protein"], mapping=aes(fill=col, group=id))
+plt=plt+geom_polygon(data=zoom.rect2, fill=blue, alpha=0.3)
+plt=plt+geom_polygon(data=dtp[id%in%c(dt.heme$acc, "zoom2")], mapping=aes(fill=col, group=id))
+plt=plt+geom_textcurve(data=dt.lab, mapping=aes(label=label, x=x1, y=y1, xend=x2, yend=y2, textcolor=col, vjust=vjust, fontface=fontface), ncp=10, curvature=1, text_only=TRUE, size=2.8)
 plt=plt+
-    geom_polygon(data=dtp[rank=="domain" & domain=="B"]) +
-    geom_polygon(data=dtp[rank=="domain" & domain=="E"]) +
-    geom_polygon(data=dtp[rank=="domain" & domain=="A"])
-for (rnk in lRanks[2:length(lRanks)]) plt=plt+geom_polygon(data=dtp[rank==rnk])
-plt=plt+
-    annotate("text", label="Bacteria", x=-40000, y=24000, size=6, color=green, hjust=0) +
-    annotate("text", label="Eukaryote", x=-40000, y=-26000, size=6, color=blue, hjust=0) +
-    annotate("text", label="Archaea", x=1000, y=-35000, size=6, color=red, hjust=0) +
-    # geom_text(data=dten[rank=="label"], mapping=aes(label=label, size=r), color="black") +
+    annotate("text", label="Bacteria",  x=-30200, y= 12000, size=6, color=green, hjust=1) +
+    annotate("text", label="Eukaryota", x=-25500, y=-26000, size=6, color=blue,  hjust=1) +
+    annotate("text", label="Archaea",   x=-11000, y=-44000, size=6, color=red,   hjust=1) +
+    # annotate("text", label="Homo sapiens", x=dtz$x, y=dtz$y-dtz$r-1000, size=3.5, color=blue, fontface="italic") +
     scale_fill_identity() +
-    scale_linewidth_manual(values=c(0., .3, .2, .1, .05, .025, 0.01, 0.005), breaks=lRanks, guide="none") +
+    scale_linewidth_manual(values=c(0., .3, .2, .1, .05, .025, 0.01, 0.0025), breaks=lRanks, guide="none") +
     scale_color_gradient(low="black", high="yellow", guide="none") +
-    coord_fixed() #+
-    #theme_void()
-plt
+    new_scale_color() +
+    geom_segment(data=dt.species, mapping=aes(x=x1, y=y1, xend=x2, yend=y2), linewidth=0.2, linetype="dotted") +
+    geom_text(data=dt.species, mapping=aes(label=label, color=domain), size=2.8, lineheight=.75, fontface="italic") +
+    scale_color_manual(values=c(green, blue, red), guide="none") +
+    coord_fixed() +theme_void()
+# plt
 
-ggsave("pack_zoom.jpg", plt, width=210, height=297, units="mm", dpi=1000)
+ggsave("pack_lab.png", plt, width=210, height=297, units="mm", dpi=1000)
 
-# TODO: rotate E so human is on the right.
-# TODO: take 3 largest B phylum, calc gap location, add gap node to fill bg.
-
-# maxCor = dten[!is.na(cor_nrep1_pp), max(1/cor_nrep1_pp-1)]
-# clerp <- function (vals) {
-#     vals = 1/vals-1
-#     vals / max(vals)
-#     # vals / maxCor
-# }
-# dten[, y:=as.numeric(rank)+clerp(cor_nrep1_pp), by=rank]
-# dten[is.na(y), y:=as.numeric(rank)]
-#
-# dten[, alpha:=avg_maxpers1/max(avg_maxpers1)]
-# dten[domain=="A", hue:=0/4]
-# dten[domain=="B", hue:=1/4]
-# dten[domain=="E", hue:=2/4]
-# dten[domain=="V", hue:=3/4]
-#
-# plt = ggplot() + geom_scattermost(cbind(0,0), col="transparent")
-# for(i in 1:length(lRanks)) {
-#     dtenr = dten[rank==lRanks[i]]
-#     plt=plt+ geom_scattermost(dtenr[, .(x+width/2,y-.5)], col=hsv(h=dtenr$hue, s=1, v=(dtenr$alpha+1)/2, alpha=0.5), pointsize=9-i, pixels=c(2000,2000))
-# }
-# plt + coord_polar() + theme_void()
-
-# treemap(dtf=, index=lRanks[1:3], vSize="proteins", vColor="avg_maxpers1")
+# TODO: rotate the whole thing a bit to reduce wasted space on the left. Place zooms under, going up.
 
