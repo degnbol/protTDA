@@ -315,10 +315,10 @@ dt.lab[, y2:=y+r*cos(rot-pi/2)]
 soi = c(
         "Escherichia coli",          -29000, -19100, 1.1, 0.5,
         "Saccharomyces cerevisiae",  -24000, -31000,1.05, 0.5,
-        "Pyrococcus furiosus",        13600,   5000, 0.5, 1.1,
+        "Pyrococcus furiosus",        13600,   5500, 0.5, 1.1,
         "Bacillus subtilis",           8000,  -7000, -.1, 0.5,
         "Mycoplasmoides genitalium", -33300,  15200, 0.5, 1.1,
-        "Drosophila melanogaster",    -3500, -33400,-.05, 0.5
+        "Drosophila melanogaster",    -3550, -33350,-.05, 0.5
 )
 soi = data.table(label=           soi[seq(1,length(soi),by=5)],
                  xend= as.numeric(soi[seq(2,length(soi),by=5)]),
