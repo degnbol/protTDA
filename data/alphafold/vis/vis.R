@@ -165,7 +165,7 @@ for (rnk in c(rev(lRanks[2:length(lRanks)-1]), "origin")) {
 # rotate within each node so we can overlap domains and save space and for a more varied look.
 rotB = pi/4
 rotE = pi*1.28
-rotA = pi/4
+rotA = pi/7 # pi/4 originally before moving things
 
 parents = lDomains
 for(i in 1:99) {
@@ -222,12 +222,12 @@ dtbg = rbind(dten[rank!="domain"], dtbg, fill=TRUE)
 # move domains into nicer locations
 dtbg[domain=="E", x := x-7000]
 dtbg[domain=="E", y := y+1600]
-dtbg[domain=="A", x := x-7300]
+dtbg[domain=="A", c("x", "y") := .(x+7800, y+51000)]
 
 # zoom of homo sapiens
 dths = dtbg[id=="9606"]
 dtz = copy(dths)
-dtz[, c("id", "x", "y", "r") := .("zoom", 9000, -17500, 6000)]
+dtz[, c("id", "x", "y", "r") := .("zoom", 8400, -17500, 6000)]
 dtbg = rbind(dtbg[id!="zoom"], dtz, fill=TRUE)
 # zoom rect (not quite a rectangle) showing shaded area from human node to zoomed version.
 zoom.rect = outerTangents(dths$x, dths$y, dtz$x, dtz$y, dths$r, dtz$r)
@@ -235,7 +235,7 @@ zoom.rect = outerTangents(dths$x, dths$y, dtz$x, dtz$y, dths$r, dtz$r)
 # circle pack zoom of proteins
 dt.prot = cbind(dt.human, circlePack(dt.human$n, "area"))
 # rotate to get a nicer heme zoom cone (no cone-cone overlap)
-dt.prot[, c("x", "y") := rot(x, y, pi*.28)]
+dt.prot[, c("x", "y") := rot(x, y, pi*.22)]
 # scale and place
 scl.prot = dtz$r / dt.prot[, max(sqrt(x^2+y^2)+r)]
 dt.prot[, c("x", "y", "r") := .(x*scl.prot + dtz$x, y*scl.prot + dtz$y, r*scl.prot)]
@@ -249,7 +249,7 @@ dtbg = rbind(dtbg[rank!="protein"], dt.prot[, .(id=acc, x, y, r, col, rank="prot
 # further zoom on hemoglobin subunit alpha
 dt.heme = dt.prot[acc=="P69905"]
 dtz2 = copy(dt.heme)
-dtz2[, c("id", "x", "y", "r") := .("zoom2", 12500, -29000, 4000)]
+dtz2[, c("id", "x", "y", "r") := .("zoom2", 12300, -28000, 4000)]
 dtbg = rbind(dtbg[id!="zoom2"], dtz2, fill=TRUE)
 # zoom rect (not quite a rectangle) showing shaded area from zoom node to heme zoom.
 zoom.rect2 = outerTangents(dt.heme$x, dt.heme$y, dtz2$x, dtz2$y, dt.heme$r, dtz2$r)
@@ -258,7 +258,7 @@ zoom.rect2 = outerTangents(dt.heme$x, dt.heme$y, dtz2$x, dtz2$y, dt.heme$r, dtz2
 # build polygons
 dtv = rbind(getVerts(dtbg[100 <= r]     , 160),
             getVerts(dtbg[(10 <= r) & (r < 100)], 40)   ,#)#,
-            getVerts(dtbg[(1 <= r ) & (r < 10 )], 16)  ,#)#,
+            getVerts(dtbg[(1 <= r ) & (r < 10 )], 16)  ,
             getVerts(dtbg[r < 1]            ,   6))
 dtp = merge(dtv, dtbg[, .(domain, rank, id, col, cor_nrep1_pp)], by="id")
 cat(nrow(dtp), '\n')
@@ -274,7 +274,7 @@ dt.lab[domain=="B", col:=green]
 dt.lab[domain=="E", col:=blue]
 dt.lab[domain=="A", col:=red]
 # custom rotations. 0 is up, values are clockwise radians.
-dt.lab[domain=="A", rot:=pi]
+dt.lab[domain=="A", rot:=-pi*2/3]
 dt.lab.rot = c(
     "Fungi",               -3/4 ,
     "Pseudomonadota",      -1/2 ,
@@ -287,9 +287,9 @@ dt.lab.rot = c(
     "Ascomycota",          .53  ,
     "Bacillota",           1/3  ,
     "Nematoda",            -2/3 ,
-    "Flavobacteriia",      -.45  ,
+    "Flavobacteriia",      -.45 ,
     "Actinomycetes",       -1/3 ,
-    "Mammalia",             1 ,
+    "Mammalia",             1   ,
     "Aves",                 1/4 ,
     "Insecta",              1/4 ,
     "Chordata",            -.55 
@@ -312,17 +312,26 @@ dt.lab[, y1:=y+r*cos(rot+pi/2)]
 dt.lab[, y2:=y+r*cos(rot-pi/2)]
 
 # add some labels for species of interest
-soi = c("Escherichia coli", "Saccharomyces cerevisiae", "Pyrococcus furiosus")
-dt.species = dtbg[label%in%soi]
-dt.species[, c("x2", "y2") := .(x, y)]
-# sort
-setkey(dt.species, "label")
-dt.species = dt.species[soi]
-dt.species$x   = c(-29000, -27000,    500)
-dt.species$y   = c(-20000, -31000, -43000)
-dt.species$gap = c(.18, .3, .39)
-dt.species[, c("x1", "y1") := .(x*(1-gap)+x2*gap, y*(1-gap)+y2*gap)]
+soi = c(
+        "Escherichia coli",          -29000, -19100, 1.1, 0.5,
+        "Saccharomyces cerevisiae",  -24000, -31000,1.05, 0.5,
+        "Pyrococcus furiosus",        13600,   5000, 0.5, 1.1,
+        "Bacillus subtilis",           8000,  -7000, -.1, 0.5,
+        "Mycoplasmoides genitalium", -33300,  15200, 0.5, 1.1,
+        "Drosophila melanogaster",    -3500, -33400,-.05, 0.5
+)
+soi = data.table(label=           soi[seq(1,length(soi),by=5)],
+                 xend= as.numeric(soi[seq(2,length(soi),by=5)]),
+                 yend= as.numeric(soi[seq(3,length(soi),by=5)]),
+                 hjust=as.numeric(soi[seq(4,length(soi),by=5)]),
+                 vjust=as.numeric(soi[seq(5,length(soi),by=5)])
+)
+dt.species = dtbg[soi, on="label"]
 dt.species[, label:=sub(" ", "\n", label)]
+dt.species[endsWith(label, "coli"), label:=paste0(label, " ")] # fix weird right adjustment spacing
+# duplicate the polygons of the species to the other end of the segment.
+dtp.species = dtp[dt.species[,.(id,dx=xend-x,dy=yend-y)], on="id"]
+dtp.species[, c("id", "x", "y", "dx", "dy") := .(paste(id, "duplicate"), x+dx, y+dy, NULL, NULL)]
 
 plt = ggplot(mapping=aes(x=x, y=y))
 # draw domain outline
@@ -336,16 +345,16 @@ plt=plt+geom_polygon(data=zoom.rect2, fill=blue, alpha=0.3)
 plt=plt+geom_polygon(data=dtp[id%in%c(dt.heme$acc, "zoom2")], mapping=aes(fill=col, group=id))
 plt=plt+geom_textcurve(data=dt.lab, mapping=aes(label=label, x=x1, y=y1, xend=x2, yend=y2, textcolor=col, vjust=vjust, fontface=fontface), ncp=10, curvature=1, text_only=TRUE, size=2.8)
 plt=plt+
-    annotate("text", label="Bacteria",  x=-30200, y= 12000, size=6, color=green, hjust=1) +
+    annotate("text", label="Bacteria",  x=-29000, y= 19500, size=6, color=green, hjust=1) +
     annotate("text", label="Eukaryota", x=-25500, y=-26000, size=6, color=blue,  hjust=1) +
-    annotate("text", label="Archaea",   x=-11000, y=-44000, size=6, color=red,   hjust=1) +
-    # annotate("text", label="Homo sapiens", x=dtz$x, y=dtz$y-dtz$r-1000, size=3.5, color=blue, fontface="italic") +
+    annotate("text", label="Archaea",   x=  5000, y= 17500, size=6, color=red,   hjust=0) +
     scale_fill_identity() +
     scale_linewidth_manual(values=c(0., .3, .2, .1, .05, .025, 0.01, 0.0025), breaks=lRanks, guide="none") +
     scale_color_gradient(low="black", high="yellow", guide="none") +
+    geom_segment(data=dt.species, mapping=aes(x=x, y=y, xend=xend, yend=yend), linewidth=0.3, linetype="dotted") +
+    geom_polygon(data=dtp.species, mapping=aes(fill=col, group=id, linewidth=rank, color=log(1-cor_nrep1_pp))) +
     new_scale_color() +
-    geom_segment(data=dt.species, mapping=aes(x=x1, y=y1, xend=x2, yend=y2), linewidth=0.2, linetype="dotted") +
-    geom_text(data=dt.species, mapping=aes(label=label, color=domain), size=2.8, lineheight=.75, fontface="italic") +
+    geom_text(data=dt.species, mapping=aes(x=xend, y=yend, label=label, color=domain, vjust=vjust, hjust=hjust), size=2.8, lineheight=.75, fontface="italic") +
     scale_color_manual(values=c(green, blue, red), guide="none") +
     coord_fixed() +theme_void()
 # plt
