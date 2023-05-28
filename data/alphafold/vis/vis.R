@@ -181,6 +181,9 @@ for(i in 1:99) {
     dten[parent%in%parents & parent=="9443", c("x", "y") := rot(x, y, pi*.75)]
     dten[parent%in%parents & parent=="9404", c("x", "y") := rot(x, y, pi)]
     dten[parent%in%parents & parent=="4890", c("x", "y") := rot(x, y, pi/2)] # Ascomycota
+    dten[parent%in%parents & parent=="4930", c("x", "y") := rot(x, y, pi)] # Saccharomyces
+    dten[parent%in%parents & parent=="4893", c("x", "y") := rot(x, y, pi)] # Saccharomycetaceae
+    dten[parent%in%parents & parent=="4892", c("x", "y") := rot(x, y, pi)] # Saccharomycetales
     dten[parent%in%parents & parent=="1236", c("x", "y") := rot(x, y, -pi*.55)] # Gammaproteobacteria
     rotB=rotB+2*pi/7
     rotE=rotE+2*pi/7
@@ -314,7 +317,7 @@ dt.lab[, y2:=y+r*cos(rot-pi/2)]
 # add some labels for species of interest
 soi = c(
         "Escherichia coli",          -29000, -19100, 1.1, 0.5,
-        "Saccharomyces cerevisiae",  -24000, -31000,1.05, 0.5,
+        "Saccharomyces cerevisiae",  -25400, -26000,1.05, 0.5,
         "Pyrococcus furiosus",        13600,   5500, 0.5, 1.1,
         "Bacillus subtilis",           8000,  -7000, -.1, 0.5,
         "Mycoplasmoides genitalium", -33300,  15200, 0.5, 1.1,
@@ -336,7 +339,7 @@ dtp.species[, c("id", "x", "y", "dx", "dy") := .(paste(id, "duplicate"), x+dx, y
 plt = ggplot(mapping=aes(x=x, y=y))
 # draw domain outline
 plt=plt+ geom_polygon(data=dtp[rank=="domain"], mapping=aes(fill=col, group=id))
-for (rnk in lRanks[2:8]) plt=plt+geom_polygon(data=dtp[rank==rnk], mapping=aes(fill=col, group=id, linewidth=rank, color=log(1-cor_nrep1_pp)))
+for (rnk in lRanks) plt=plt+geom_polygon(data=dtp[rank==rnk], mapping=aes(fill=col, group=id, linewidth=rank, color=log(1-cor_nrep1_pp)))
 plt=plt+geom_polygon(data=zoom.rect, fill=blue, alpha=0.3)
 # if we use zoom shadow, then we need to draw human on top
 plt=plt+geom_polygon(data=dtp[id%in%c(dths$id, "zoom")], mapping=aes(fill=col, group=id))
@@ -346,7 +349,7 @@ plt=plt+geom_polygon(data=dtp[id%in%c(dt.heme$acc, "zoom2")], mapping=aes(fill=c
 plt=plt+geom_textcurve(data=dt.lab, mapping=aes(label=label, x=x1, y=y1, xend=x2, yend=y2, textcolor=col, vjust=vjust, fontface=fontface), ncp=10, curvature=1, text_only=TRUE, size=2.8)
 plt=plt+
     annotate("text", label="Bacteria",  x=-29000, y= 19500, size=6, color=green, hjust=1) +
-    annotate("text", label="Eukaryota", x=-25500, y=-26000, size=6, color=blue,  hjust=1) +
+    annotate("text", label="Eukaryota", x=-25500, y=-23000, size=6, color=blue,  hjust=1) +
     annotate("text", label="Archaea",   x=  5000, y= 17500, size=6, color=red,   hjust=0) +
     scale_fill_identity() +
     scale_linewidth_manual(values=c(0., .3, .2, .1, .05, .025, 0.01, 0.0025), breaks=lRanks, guide="none") +
@@ -359,7 +362,43 @@ plt=plt+
     coord_fixed() +theme_void()
 # plt
 
-ggsave("pack_lab.png", plt, width=210, height=297, units="mm", dpi=1000)
+ggsave("pack.png", plt, width=210, height=297, units="mm", dpi=1000)
 
-# TODO: rotate the whole thing a bit to reduce wasted space on the left. Place zooms under, going up.
+# plot legends
+
+colScl = dtbg$cor_nrep1_pp
+colScl = colScl[!is.na(colScl)]
+colScl = log(1-colScl)
+colScl = range(colScl[colScl > -Inf])
+
+size.leg = data.table(x=-40000+1500*0:3,
+                      y=-32000,
+                      r=sqrt(c(1e4, 1e5, 1e6, 1e7) / pi))
+size.leg[,id:=r]
+size.leg[,x:=x+cumsum(r)]
+size.leg = getVerts(size.leg, 100)
+
+dt.fill = data.table(x=-40000 + c(rep(0,7), rep(2000/3, 7), rep(4000/3, 7)),
+                     y=-28000 + rep(c(0:6) * 2000, 3),
+                     col=c(hsv(  2/360, 0:6/6, 1),
+                           hsv( 96/360, 0:6/6, 1),
+                           hsv(196/360, 0:6/6, 1)))
+dt.fill.lab = dt.fill[, .(x=max(x)+1000), by=y]
+dt.fill.lab$label = c("0     -0.125 ", "0.125 -0.25  ", "0.25  -0.0375", "0.0375-0.05  ", "0.05  -0.0625", "0.0625-0.075 ", "      >0.075 ")
+
+plt = ggplot(mapping=aes(x=x, y=y))
+# draw domain outline
+for (rnk in lRanks[2:3]) plt=plt+geom_polygon(data=dtp[rank==rnk], mapping=aes(fill=col, group=id, linewidth=rank, color=log(1-cor_nrep1_pp)))
+plt=plt+geom_polygon(data=size.leg, mapping=aes(group=id), fill="gray")
+plt=plt+
+    scale_fill_identity() +
+    scale_linewidth_manual(values=c(0., .3, .2, .1, .05, .025, 0.01, 0.0025), breaks=lRanks, guide="none") +
+    scale_color_gradient(low="black", high="yellow", name="H1 distributions", limits=colScl, breaks=colScl, labels=c("identical", "different")) +
+    guides(color=guide_colorbar(direction="horizontal", ticks=FALSE, barwidth=5, barheight=.5, title.position="top", label.hjust=c(0,1))) +
+    coord_fixed() +theme_void() +theme(legend.position=c(.12,.1)) +
+    geom_tile(data=dt.fill, mapping=aes(fill=col), width=2000/3, height=2000) +
+    geom_text(data=dt.fill.lab, mapping=aes(label=label), hjust=0, size=2.5, family="mono")
+plt
+
+ggsave("legend.pdf")
 
