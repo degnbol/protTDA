@@ -50,7 +50,7 @@ dfnD.rank .= "domain"
 append!(dfN, dfnD; cols=:subset)
 
 # remove columns that takes up unnecessary space
-binCols = names(dfN)[match.(r"avg_nrep[12]_.*", names(dfN)) .!== nothing]
+binCols = names(dfN)[match.(r"avg_nrep[12]_[bft][0-9].*", names(dfN)) .!== nothing]
 select!(dfN, Not(binCols))
 
 # append domain edge list
