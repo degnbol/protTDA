@@ -107,40 +107,12 @@ dtn = dtn[id != 'O']
 dtn = merge(dtn, dte[, .(children=.N), by=parent], by.x="id", by.y="parent", all.x=TRUE)
 dtn[is.na(children), children:=1]
 
-dtn[, w_pp:=proteins/total]
-dtn[, w:=children/sum(children), by=rank]
-setorder(dtn, -w_pp)
-
 dte[, child:=as.character(child)]
 
 dten = merge(dtn, dte, by.x="id", by.y="child", all.x=TRUE)
 dten[is.na(parent), parent:=domain]
 
-# recalc avg_maxpers1_pp
-dten[, prots := 0]
-dten[, maxpers1_pp := 0]
-dten[rank=="species", prots := proteins]
-dten[rank=="species", maxpers1_pp := avg_maxpers1_pp * prots]
-ids = dten[rank=="species", id]
-for(i in 1:99) {
-    cat(i, '\n')
-    dtt = dten[id%in%ids, .(prots=sum(prots), maxpers1_pp=sum(maxpers1_pp)), by=parent]
-    if(nrow(dtt) == 0) break
-    dten[dtt, on=c(id="parent"), c("prots", "maxpers1_pp") := .(prots+i.prots, maxpers1_pp+i.maxpers1_pp)]
-    ids = dtt$parent
-}
-# dten[rank!="species", avg_maxpers1_pp := maxpers1_pp/prots]
-
 setorder(dten, -"proteins")
-
-dten[, s:=avg_maxpers1_pp/avg_n]
-# hist(dten$s)
-# 6 bins
-dten[, sBin:=pmin(floor(s*4/0.05), 6)/6]
-dten[domain=="A", col:=hsv(  2/360, sBin, 1)]
-dten[domain=="B", col:=hsv( 96/360, sBin, 1)]
-dten[domain=="E", col:=hsv(196/360, sBin, 1)]
-# dten[domain=="V", col:=hsv(309/360, s, 1)]
 
 # annotate parent rank
 if("rank_parent"%in%names(dten)) {dten[, rank_parent:=NULL]}
@@ -218,10 +190,10 @@ dten[domain=="A", c("x", "y") := .(x, y) + relE]
 dtbg = dten[rank_parent=="domain", .(domain=domain, rank="domain", id=paste("domain", id), x, y, r=r+1100)]
 # add fake nodes to fill gaps in bacteria outline
 dtbg = rbind(dtbg, data.table(domain="B", rank="domain", id=c("gap1", "gap2"), x=c(-10000, -15000), y=c(1000, 10000), r=3000))
-# add color with a merge
-dtbg = merge(dtbg, dten[rank=="domain", .(domain, col)], by="domain")
+# copy all the values for the domain (that we are not replacing)
+dtbg = merge(dtbg, dten[rank=="domain", -c("rank", "id", "x", "y", "r")], by="domain")
 # add everything that is not outline
-dtbg = rbind(dten[rank!="domain"], dtbg, fill=TRUE)
+dtbg = rbind(dten[rank!="domain"], dtbg)
 # move domains into nicer locations
 dtbg[domain=="E", x := x-7000]
 dtbg[domain=="E", y := y+1600]
@@ -242,29 +214,53 @@ dt.prot[, c("x", "y") := rot(x, y, pi*.22)]
 # scale and place
 scl.prot = dtz$r / dt.prot[, max(sqrt(x^2+y^2)+r)]
 dt.prot[, c("x", "y", "r") := .(x*scl.prot + dtz$x, y*scl.prot + dtz$y, r*scl.prot)]
-dt.prot[, s:=maxpers1/n]
-# hist(dt.prot$s)
-# 6 bins exactly like for the averaged nodes
-dt.prot[, sBin:=pmin(floor(s*4/0.05), 6)/6]
-dt.prot[, col:=hsv(196/360, sBin, 1)]
-dtbg = rbind(dtbg[rank!="protein"], dt.prot[, .(id=acc, x, y, r, col, rank="protein")], fill=TRUE)
+dt.prot[, domain:="E"]
+dt.prot[, id:=acc]
+# add metadata by creating trivial avg columns (avg over one protein)
+for(nm in c("n", "nrep1", "nrep2", "maxrep1", "maxrep2", "maxpers1", "maxpers2")) {
+    dt.prot[, paste0("avg_", nm)] = dt.prot[, paste0("avg_", nm, "_pp")] = dt.prot[, nm, with=FALSE]
+}
+dt.prot = dt.prot[, intersect(names(dtbg), names(dt.prot)), with=FALSE]
+dt.prot[, rank:="protein"]
+dtbg = rbind(dtbg[rank!="protein"], dt.prot, fill=TRUE)
 
 # further zoom on hemoglobin subunit alpha
-dt.heme = dt.prot[acc=="P69905"]
+dt.heme = dt.prot[id=="P69905"]
 dtz2 = copy(dt.heme)
-dtz2[, c("id", "x", "y", "r") := .("zoom2", 12300, -28000, 4000)]
-dtbg = rbind(dtbg[id!="zoom2"], dtz2, fill=TRUE)
+dtz2[, c("rank", "id", "x", "y", "r") := .("zoom", "zoom2", 12300, -28000, 4000)]
+dtbg = rbind(dtbg[id!="zoom2"], dtz2[, intersect(names(dtbg), names(dtz2)), with=FALSE], fill=TRUE)
 # zoom rect (not quite a rectangle) showing shaded area from zoom node to heme zoom.
 zoom.rect2 = outerTangents(dt.heme$x, dt.heme$y, dtz2$x, dtz2$y, dt.heme$r, dtz2$r)
-
 
 # build polygons
 dtv = rbind(getVerts(dtbg[100 <= r]     , 160),
             getVerts(dtbg[(10 <= r) & (r < 100)], 40)   ,#)#,
             getVerts(dtbg[(1 <= r ) & (r < 10 )], 16)  ,
             getVerts(dtbg[r < 1]            ,   6))
+cat(nrow(dtv), '\n')
+
+# color
+hst = function(c) {
+    xlims = quantile(dtbg[, eval(c)], probs=c(0.05, 1-0.05), na.rm=TRUE)
+    hist(dtbg[xlims[1] < eval(c) & eval(c) < xlims[2], eval(c)], breaks=200, xlim=xlims, main=c)
+}
+hst(quote(avg_maxrep1_pp)) # on avg maxrep is essentially always the same
+hst(quote(avg_maxpers1_pp)) # decent. same for 2 and their sum.
+hst(quote(avg_maxpers1_pp/avg_n_pp)) # even better distribution
+hst(quote(log(avg_maxpers1_pp/avg_n_pp)))
+# Log scale
+dtbg[, s:=log(avg_maxpers1_pp/avg_n_pp)]
+s.range = dtbg[s > -Inf, quantile(s, probs=c(0.05, 0.95))]
+dtbg[s > -Inf, s:=(s-s.range[1]) / (s.range[2]-s.range[1])]
+dtbg[s < 0, s:=0]
+dtbg[s > 1, s:=1]
+dtbg[domain=="A", col:=hsv(  2/360, s, 1)]
+dtbg[domain=="B", col:=hsv( 96/360, s, 1)]
+dtbg[domain=="E", col:=hsv(196/360, s, 1)]
+# dtbg[domain=="V", col:=hsv(309/360, s, 1)]
+
+# add meta data to polygons
 dtp = merge(dtv, dtbg[, .(domain, rank, id, col, cor_nrep1_pp)], by="id")
-cat(nrow(dtp), '\n')
 setorder(dtp, "domain")
 
 dt.lab = dtbg[(rank%in%lRanks[2:4] & r>2000) | (label%in%c("Nematoda")), .(id, domain, x, y, r, label, rot=0, vjust=1.1, fontface="plain")]
@@ -318,14 +314,14 @@ dt.lab[, y2:=y+r*cos(rot-pi/2)]
 soi = c(
         "Escherichia coli",          -29000, -19100, 1.1, 0.5,
         "Saccharomyces cerevisiae",  -25400, -26000,1.05, 0.5,
-        "Pyrococcus furiosus",        13600,   5500, 0.5, 1.1,
+        "Pyrococcus furiosus",        13100,   5800, 0.5, 1.1,
         "Bacillus subtilis",           8000,  -7000, -.1, 0.5,
         "Mycoplasmoides genitalium", -33300,  15200, 0.5, 1.1,
         "Drosophila melanogaster",    -3550, -33350,-.05, 0.5
 )
 soi = data.table(label=           soi[seq(1,length(soi),by=5)],
-                 xend= as.numeric(soi[seq(2,length(soi),by=5)]),
-                 yend= as.numeric(soi[seq(3,length(soi),by=5)]),
+                 xend =as.numeric(soi[seq(2,length(soi),by=5)]),
+                 yend =as.numeric(soi[seq(3,length(soi),by=5)]),
                  hjust=as.numeric(soi[seq(4,length(soi),by=5)]),
                  vjust=as.numeric(soi[seq(5,length(soi),by=5)])
 )
@@ -345,12 +341,12 @@ plt=plt+geom_polygon(data=zoom.rect, fill=blue, alpha=0.3)
 plt=plt+geom_polygon(data=dtp[id%in%c(dths$id, "zoom")], mapping=aes(fill=col, group=id))
 plt=plt+geom_polygon(data=dtp[rank=="protein"], mapping=aes(fill=col, group=id))
 plt=plt+geom_polygon(data=zoom.rect2, fill=blue, alpha=0.3)
-plt=plt+geom_polygon(data=dtp[id%in%c(dt.heme$acc, "zoom2")], mapping=aes(fill=col, group=id))
+plt=plt+geom_polygon(data=dtp[id%in%c(dt.heme$id, "zoom2")], mapping=aes(fill=col, group=id))
 plt=plt+geom_textcurve(data=dt.lab, mapping=aes(label=label, x=x1, y=y1, xend=x2, yend=y2, textcolor=col, vjust=vjust, fontface=fontface), ncp=10, curvature=1, text_only=TRUE, size=2.8)
 plt=plt+
-    annotate("text", label="Bacteria",  x=-29000, y= 19500, size=6, color=green, hjust=1) +
+    annotate("text", label="Bacteria",  x=-28500, y= 19500, size=6, color=green, hjust=1) +
     annotate("text", label="Eukaryota", x=-25500, y=-23000, size=6, color=blue,  hjust=1) +
-    annotate("text", label="Archaea",   x=  5000, y= 17500, size=6, color=red,   hjust=0) +
+    annotate("text", label="Archaea",   x=  5000, y= 16000, size=6, color=red,   hjust=0) +
     scale_fill_identity() +
     scale_linewidth_manual(values=c(0., .3, .2, .1, .05, .025, 0.01, 0.0025), breaks=lRanks, guide="none") +
     scale_color_gradient(low="black", high="yellow", guide="none") +
@@ -389,16 +385,16 @@ dt.fill.lab$label = c("0     -0.125 ", "0.125 -0.25  ", "0.25  -0.0375", "0.0375
 plt = ggplot(mapping=aes(x=x, y=y))
 # draw domain outline
 for (rnk in lRanks[2:3]) plt=plt+geom_polygon(data=dtp[rank==rnk], mapping=aes(fill=col, group=id, linewidth=rank, color=log(1-cor_nrep1_pp)))
-plt=plt+geom_polygon(data=size.leg, mapping=aes(group=id), fill="gray")
+plt=plt+geom_polygon(data=size.leg, mapping=aes(group=id), fill="black")
 plt=plt+
     scale_fill_identity() +
     scale_linewidth_manual(values=c(0., .3, .2, .1, .05, .025, 0.01, 0.0025), breaks=lRanks, guide="none") +
-    scale_color_gradient(low="black", high="yellow", name="H1 distributions", limits=colScl, breaks=colScl, labels=c("identical", "different")) +
+    scale_color_gradient(low="black", high="yellow", name="Persistence dists.", limits=colScl, breaks=colScl, labels=c("identical", "different")) +
     guides(color=guide_colorbar(direction="horizontal", ticks=FALSE, barwidth=5, barheight=.5, title.position="top", label.hjust=c(0,1))) +
     coord_fixed() +theme_void() +theme(legend.position=c(.12,.1)) +
     geom_tile(data=dt.fill, mapping=aes(fill=col), width=2000/3, height=2000) +
     geom_text(data=dt.fill.lab, mapping=aes(label=label), hjust=0, size=2.5, family="mono")
 plt
 
-ggsave("legend.pdf")
+ggsave("legend.png", plt, width=210, height=297, units="mm", dpi=1000)
 
