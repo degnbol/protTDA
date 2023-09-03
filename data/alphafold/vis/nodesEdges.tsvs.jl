@@ -51,6 +51,12 @@ append!(dfN, dfnD; cols=:subset)
 
 # remove columns that takes up unnecessary space
 binCols = names(dfN)[match.(r"avg_nrep[12]_[bft][0-9].*", names(dfN)) .!== nothing]
+# Although first create thres 1, 2, 3, 4, 10 angstrom
+dfN[!, :avg_nrep1_t1_pp] = dfN.avg_nrep1_pp    - dfN.avg_nrep1_b0_pp
+dfN[!, :avg_nrep1_t2_pp] = dfN.avg_nrep1_t1_pp - dfN.avg_nrep1_b1_pp
+dfN[!, :avg_nrep1_t3_pp] = dfN.avg_nrep1_t2_pp - dfN.avg_nrep1_b2_pp
+dfN[!, :avg_nrep1_t4_pp] = dfN.avg_nrep1_t3_pp - dfN.avg_nrep1_b3_pp
+setdiff!(binCols, ["avg_nrep1_t10_pp"])
 select!(dfN, Not(binCols))
 
 # append domain edge list
@@ -77,6 +83,7 @@ dfE.cor_nrep1    .= cor.(dfE.c_nrep1_b, dfE.p_nrep1_b)
 dfE.cor_nrep2    .= cor.(dfE.c_nrep2_b, dfE.p_nrep2_b)
 dfE.cor_nrep1_pp .= cor.(dfE.c_nrep1_b_pp, dfE.p_nrep1_b_pp)
 dfE.cor_nrep2_pp .= cor.(dfE.c_nrep2_b_pp, dfE.p_nrep2_b_pp)
+
 
 """
 another correlation is to the values from siblings rather than parent.
