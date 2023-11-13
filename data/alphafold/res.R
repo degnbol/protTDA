@@ -46,7 +46,9 @@ ggplot(dtm, aes(x=method, y=value, fill=`Calc reps`)) +
           axis.text.x=element_text(angle=45, hjust=1),
           panel.grid.minor.x=element_blank(),
           panel.grid.major.x=element_blank(),
-          panel.border=element_blank()
+          panel.border=element_blank(),
+          strip.placement="outside",
+          strip.background=element_blank()
     )
 
 ggsave("AF_bench.pdf", width=4, height=6)
@@ -94,10 +96,10 @@ dtt[method==actual, label:="< 3 days"]
 ggplot(dtt, aes(x=method, y=`time [days/160CPUs]`, label=label)) +
     geom_col() +
     geom_text(vjust=-.2, size=3) +
-    theme(axis.text.x=element_text(angle=45, hjust=1)) +
     scale_y_continuous(expand=expansion(mult=c(0,.05))) +
     theme_bw() +
-    theme(panel.border=element_blank(),
+    theme(axis.text.x=element_text(angle=45, hjust=1),
+          panel.border=element_blank(),
           panel.grid=element_blank()
     )
 
