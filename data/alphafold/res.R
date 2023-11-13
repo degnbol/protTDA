@@ -2,7 +2,7 @@
 suppressPackageStartupMessages(library(data.table))
 library(ggplot2)
 
-dt = fread("~/protTDA/data/alphafold/res.tsv")
+dt = fread("res.tsv")
 dt[algo == "og eirene", algo := "eirene.jl"]
 dt[algo == "my eirene", algo := "eirene.jl mod"]
 setnames(dt, "algo", "method")
@@ -40,13 +40,19 @@ ggplot(dtm, aes(x=method, y=value, fill=`Calc reps`)) +
     geom_text(data=dtm[method=="ripserer.jl alpha"], aes(label=round(value, 3)), vjust=0, size=2.5) +
     xlab("method") +
     scale_y_continuous(expand=expansion(mult=c(0,.05))) +
+    scale_fill_discrete(name="Calculates\nrepresentatives") +
+    theme_bw() +
     theme(axis.title.y=element_blank(),
-          axis.text.x=element_text(angle=45, hjust=1))
+          axis.text.x=element_text(angle=45, hjust=1),
+          panel.grid.minor.x=element_blank(),
+          panel.grid.major.x=element_blank(),
+          panel.border=element_blank()
+    )
 
 ggsave("AF_bench.pdf", width=4, height=6)
 
 
-df = fread("~/protTDA/data/alphafold/oracle_metrics.tsv")
+df = fread("oracle_metrics.tsv")
 df[, timestamp:=as.POSIXct(timestamp, tz="GMT")]
 # MB/s
 df[, diskReadMB:=diskReadBytes/1e6]
@@ -63,8 +69,8 @@ ggplot(df.melt, aes(x=timestamp, y=value, color=variable)) +
     geom_line() +
     scale_y_continuous(name="%", limits=c(0,100), expand=c(0,0),
                        sec.axis=sec_axis(~.*scl, name="MB/s")) +
-    scale_color_discrete(name="Measurement", labels=c("memory", "CPU", "read", "write"))
-    # theme(legend.title=element_blank())
+    scale_color_discrete(name="Measurement", labels=c("memory", "CPU", "read", "write")) +
+    theme_bw()
 
 ggsave("AF_PH_run.pdf", width=6, height=2)
 
@@ -89,6 +95,11 @@ ggplot(dtt, aes(x=method, y=`time [days/160CPUs]`, label=label)) +
     geom_col() +
     geom_text(vjust=-.2, size=3) +
     theme(axis.text.x=element_text(angle=45, hjust=1)) +
-    scale_y_continuous(expand=expansion(mult=c(0,.05)))
+    scale_y_continuous(expand=expansion(mult=c(0,.05))) +
+    theme_bw() +
+    theme(panel.border=element_blank(),
+          panel.grid=element_blank()
+    )
 
 ggsave("AF_actual.pdf", width=2, height=6)
+
