@@ -24,3 +24,6 @@ else
     psql --dbname=protTDA
 fi
 
+# install the julia package libPQ
+$0:h/install.jl
+

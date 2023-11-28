@@ -16,6 +16,7 @@ to `data/alphafold/dl/proteomes/`.
 - Julia for most of the main code.
   Cluster computations run using v1.8.2 for Aarch64 Linux.
 - Python and a python package manager, e.g. pip and [miniforge](https://github.com/conda-forge/miniforge).
+- R to reproduce visualizations.
 - [HDF5](https://www.hdfgroup.org/downloads/hdf5) for organizing analysis output data.
   Preferably with parallel support, see `release_docs/INSTALL_parallel` if downloading the source code.
 - tmux for job control.
@@ -36,4 +37,5 @@ to `data/alphafold/dl/proteomes/`.
 - Python dependencies listed in `requirements.txt` for community detection.
   E.g. `pip install -r requirements.txt`
 - Some of the raw publicly available data can be downloaded by running `data/RUNME.sh` and similar files under `data/`.
+- Postgres for the database work was installed according to `data/alphafold/postgres/install.sh`.
 
