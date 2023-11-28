@@ -27,4 +27,4 @@ sudo yum install -y libpng-devel freetype libxml2 msgpack
 # so we use C/C++ preprocessor flag instead
 
 cd pymol-open-source
-CPPFLAGS=-I/usr/include/freetype2 python ./setup.py install --no-vmd-plugins --prefix=~/protTDA/
+CPPFLAGS=-I/usr/include/freetype2 python ./setup.py install --no-vmd-plugins --prefix=$(realpath ../)
