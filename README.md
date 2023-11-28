@@ -11,6 +11,7 @@ All proteomes from AlphaFold DB were downloaded according to the
 [bulk download instructions](https://github.com/google-deepmind/alphafold/blob/main/afdb/README.md#bulk-download)
 to `data/alphafold/dl/proteomes/`
 (details in `data/alphafold/proteomes.sh`).
+Example testfiles in `data/alphafold/testfiles`.
 
 ## DEPENDENCIES
 - Zsh for most top-level execution scripts.
