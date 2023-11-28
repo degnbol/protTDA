@@ -9,7 +9,8 @@ The analysis was performed on Arm architecture ([Ampere A1 Compute from Oracle](
 The top-level script for the analysis is `data/alphafold/ripsererAFs.sh`.
 All proteomes from AlphaFold DB were downloaded according to the
 [bulk download instructions](https://github.com/google-deepmind/alphafold/blob/main/afdb/README.md#bulk-download)
-to `data/alphafold/dl/proteomes/`.
+to `data/alphafold/dl/proteomes/`
+(details in `data/alphafold/proteomes.sh`).
 
 ## DEPENDENCIES
 - Zsh for most top-level execution scripts.
@@ -29,6 +30,7 @@ to `data/alphafold/dl/proteomes/`.
   <https://cloud.google.com/storage/docs/gsutil_install>.
 - Some results use a script from the submodule at `tools/hyperTDA`, which has its own install instructions.
 - PH tool comparisons: follow installation instructions in relevant submodules under `tools/` to reproduce benchmarking results.
+  Ripser++ requires GPU hardware.
 
 ## INSTALL
 - `./install.sh` for basic git setup.
