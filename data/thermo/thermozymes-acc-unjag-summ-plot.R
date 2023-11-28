@@ -20,6 +20,19 @@ for(ec in unique(dt$EC)) {
 # we can avoid overlap in visuals by mirroring one of the persistence diagrams
 dtb[thermophile==0, c("death2", "birth2") := list(birth2, death2)]
 
+for(ec in unique(dtb$EC)) {
+    dte = dtb[EC == ec]
+    ggplot(dte, aes(x=birth2, y=death2, color=thermophile)) +
+        facet_wrap("acc") +
+        scale_color_manual(values=c("blue", "red")) +
+        geom_abline(slope=1, intercept=0, color="gray") +
+        geom_point(alpha=0.5, size=0.5) +
+        coord_fixed() +
+        ggtitle(ec)
+    ggsave(paste0("diag_", ec, ".pdf"), width=15, height=15)
+}
+
+
 ggplot(dtb, aes(x=birth2, y=death2, color=thermophile)) +
     facet_wrap("EC") +
     scale_color_manual(values=c("blue", "red")) +
