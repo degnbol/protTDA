@@ -24,5 +24,5 @@ commu both pdbs.txt obsolete.txt
 # manually looked up
 cat pdbs.txt |
     sed 's/4PTP/5PTP/' |
-    sed 's//' > temp && mv temp pdbs.txt
+    sed 's/1AMG/2AMG/' > temp && mv temp pdbs.txt
 
