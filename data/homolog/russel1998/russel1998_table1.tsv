@@ -1,0 +1,48 @@
+				Match with 1mct-a residues:		
+PDB code	Fold or protein name	RMSD	P	Ser95	His57	Asp102
+1ppf-e	Trypsin-like	0.16	1.82e-26	E195	E57	E102
+4ptp	Trypsin-like	0.18	2.72e-23	195	57	102
+1kxf	Trypsin-like	0.19	4.72e-22	215	141	163
+1rtf-ab	Trypsin-like	0.22	2.94e-19	B195	B57	B102
+1pfx-c	Trypsin-like	0.24	1.70e-17	C195	C57	C102
+1hyl-a	Trypsin-like	0.30	6.44e-14	A195	A57	A102
+1hcg-a	Trypsin-like	0.31	1.72e-13	A195	A57	A102
+2sfa	Trypsin-like	0.33	1.11e-12	147	35	65
+1lmw-ab	Trypsin-like	0.35	7.82e-12	B195	B57	B102
+1sgt	Trypsin-like	0.35	8.47e-12	195	57	102
+1cus	Flavodoxin-like	0.43	1.69e-09	120	188	175
+1tah-b	α/β Hydrolase	0.46	8.40e-09	B87	B285	B263
+1hpg-a	Trypsin-like	0.47	8.94e-09	A195	A57	A102
+1bro-a	α/β Hydrolase	0.47	9.22e-09	A98	A257	A228
+1thm	Subtilase-like	0.55	2.35e-07	225	71	38
+1svn	Subtilase-like	0.62	1.46e-06	221	64	32
+1fon-a	Trypsin-like	0.62	1.73e-06	A187	A43	A93
+1mee-a	Subtilase-like	0.65	3.56e-06	A221	A64	A32
+1st3	Subtilase-like	0.70	1.01e-05	215	62	32
+1tht-a	α/β Hydrolase	0.71	1.18e-05	A114	A241	A211
+1fuj-a	Trypsin-like	0.76	2.97e-05	A195	A57	A102
+1cse-e	Subtilase-like	0.76	3.09e-05	E221	E64	E32
+1mpt	Subtilase-like	0.77	3.73e-05	221	64	32
+2prk	Subtilase-like	0.83	9.32e-05	224	69	39
+3sgb-e	Trypsin-like	0.97	4.90e-04	E195	E57	E102
+3rp2-a	Trypsin-like	0.99	5.69e-04	A195	A57	A102
+2sga	Trypsin-like	1.00	6.21e-04	195	57	102
+2alp	Trypsin-like	1.00	6.67e-04	195	57	102
+3gct-a	Trypsin-like	1.04	9.83e-04	A195	A57	A102
+1vnc	Chloroperoxidase	1.09	1.40e-03	402	496	500
+1tlc-a	Thymidylate-synthetase	1.11	1.69e-03	A167	A207	A205
+1rib-a	Ribonucleotide-reductase	1.16	2.40e-03	A114	A118	A84
+1fat-a	Phytohemagglutinin	1.16	2.50e-03	A147	A137	A124
+1fon-a	Trypsin-like	1.17	2.67e-03	A15	A26	A186 •
+1mio-a	Nitrogenase Mo-Fe protein	1.19	3.14e-03	A183	A371	A374
+1amp	Aminopeptidase	1.21	3.57e-03	77	70	160
+1amg	Matlotetrahydrolase	1.22	3.71e-03	298	24	338
+1pta	Phosphotriesterase	1.23	3.88e-03	231	254	253
+1vhh	Sonic hedgehog	1.23	4.01e-03	139	141	148
+1cel-a	Cellobiohydrolase-I	1.24	4.28e-03	A174	A228	A257
+1cyn-a	Cyclophilin-like	1.25	4.55e-03	A107	A100	A131
+2rmc-a	Cyclophilin-like	1.26	4.91e-03	A133	A126	A157
+2cpl	Cyclophilin-like	1.28	5.45e-03	99	92	123
+1ton	Trypsin-like	1.29	5.73e-03	195	57	102 ‡
+1jbc	Concanavalin A	1.29	5.84e-03	34	24	10
+1thm	Subtilase-like	1.30	6.22e-03	133	71	38 •

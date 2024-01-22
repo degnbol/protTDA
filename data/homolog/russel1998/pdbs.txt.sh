@@ -26,3 +26,6 @@ cat pdbs.txt |
     sed 's/4PTP/5PTP/' |
     sed 's/1AMG/2AMG/' > temp && mv temp pdbs.txt
 
+# the entries in Table 1 are compared to 1mct-a, so we add that
+echo "1MCT" >> pdbs.txt
+

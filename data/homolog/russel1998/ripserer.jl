@@ -50,7 +50,9 @@ function readCIF(path::String)
     length(seq_id2acc) > 0 || return title, NamedTuple[]
 
     entity2aa = Dict(zip(cif["_entity_poly.entity_id"],
-                         cif["_entity_poly.pdbx_seq_one_letter_code"]))
+                         # using canonical so we can easily do sequence similarity for measuring genetic distance.
+                         # blastp will ignore non-standard amino acids, e.g. (PCA) will be seen as 5 invalid AAs.
+                         replace.(cif["_entity_poly.pdbx_seq_one_letter_code_can"], '\n'=>"")))
     
     df = DataFrame([parse.(Float64, cif["_atom_site.Cartn_$axis"]) for axis in "xyz"], [:x, :y, :z])
     df.isAtom = cif["_atom_site.group_PDB"] .== "ATOM"
@@ -249,8 +251,4 @@ for infname in readdir("cifs"; join=true)
     println(infname)
     cifPH(infname, "PH")
 end
-
-# TODO: write AA seq to file for alignment.
-# cmp regular seq alignment to cool new topology based ones.
-# seq align across genetic distance and compare topology similarity vs genetic distance.
 
