@@ -96,6 +96,7 @@ for (i, row) in enumerate(eachrow(df2))
     row.cent2_cor = cor(qcent2, hcent2)
 end
 
+fh = open("evol.jl.tsv", "w")
 
 # last sentence of first link references the paper below and says:
 # "The bit-score provides a better rule-of-thumb for inferring homology"
@@ -105,13 +106,23 @@ end
 # https://ravilabio.info/notes/bioinformatics/e-value-bitscore.html
 # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3820096/
 # https://doi.org/10.1002%2F0471250953.bi0301s42
-cor(df2.bitscore, df2.cent1_cor)
-cor(df2.bitscore, df2.cent2_cor)
-cor(log.(df2.bitscore), df2.cent2_cor)
+@chain cor(df2.bitscore, df2.cent1_cor) println(fh, "bitscore\tcent1_cor\t", _)
+@chain cor(df2.bitscore, df2.cent2_cor) println(fh, "bitscore\tcent2_cor\t", _)
+@chain cor(log.(df2.bitscore), df2.cent2_cor)  println(fh, "log(bitscore)\tcent2_cor\t", _)
 # high correlation between bitscore (proxy for evol dist) and cents.
 scatter(x=df2.bitscore, y=df2.cent1_cor, mode="markers") |> plot
 scatter(x=df2.bitscore, y=df2.cent2_cor, mode="markers") |> plot
-scatter(x=log.(df2.bitscore), y=df2.cent2_cor, mode="markers") |> plot
+
+bitscore_cent2_cor = cor(df2.bitscore, df2.cent2_cor)
+p = plot(
+    scatter(x=df2.bitscore, y=df2.cent2_cor, mode="markers"),
+    Layout(
+        xaxis=attr(type="log", title="bitscore"),
+        yaxis_title="Cent2 cor",
+        annotations=[attr(font=attr(size=20), x=2.5, y=0., text="cor = $(round(bitscore_cent2_cor, digits=3))", showarrow=false)],
+    )
+)
+savefig(p, "bitscore_cent2_cor.png", scale=2)
 
 if !isfile("msa.fa")
     open("to_msa.fa", "w") do io
@@ -194,47 +205,58 @@ for (i, hit) in enumerate(df2.hit)
 end
 df2[!, "elastic_dist"] .= elastic_dists
 
-
-
 utri = triu!(trues(N, N), 1)
-cor(identFrac[utri], cent1_cors[utri])
-cor(identFrac[utri], cent2_cors[utri])
+@chain cor(identFrac[utri], cent1_cors[utri]) println(fh, "identFrac\tcent1_cor\t", _)
+@chain cor(identFrac[utri], cent2_cors[utri]) println(fh, "identFrac\tcent2_cor\t", _)
 scatter(x=identFrac[utri], y=cent1_cors[utri], mode="markers") |> plot
-scatter(x=identFrac[utri], y=cent2_cors[utri], mode="markers") |> plot
 
-cor(fisherrao[utri], identFrac[utri])
-cor(fisherrao[utri], cent1_cors[utri])
-cor(fisherrao[utri], cent2_cors[utri])
+identFrac_cent2_cor = cor(identFrac[utri], cent2_cors[utri])
+p = plot(
+    scatter(x=identFrac[utri], y=cent2_cors[utri], mode="markers"),
+    Layout(
+        xaxis=attr(type="log", title="Identity [%]"),
+        yaxis_title="Cent2 cor",
+        annotations=[attr(font=attr(size=20), x=.0, y=0., text="cor = $(round(identFrac_cent2_cor, digits=3))", showarrow=false)],
+    )
+)
+savefig(p, "identFrac_cent2_cor.png", scale=2)
+
+
+@chain cor(fisherrao[utri], identFrac[utri]) println(fh, "fisherrao\tidentFrac\t", _)
+@chain cor(fisherrao[utri], cent1_cors[utri]) println(fh, "fisherrao\tcent1_cor\t", _)
+@chain cor(fisherrao[utri], cent2_cors[utri]) println(fh, "fisherrao\tcent2_cor\t", _)
 scatter(x=identFrac[utri], y=fisherrao[utri], mode="markers") |> plot
 
 
-cor(rmsds[utri], identFrac[utri])
-cor(rmsds[utri], cent1_cors[utri])
-cor(rmsds[utri], cent2_cors[utri])
-cor(rmsds[utri], fisherrao[utri])
+@chain cor(rmsds[utri], identFrac[utri])  println(fh, "RMSD\tidentFrac\t", _)
+@chain cor(rmsds[utri], cent1_cors[utri]) println(fh, "RMSD\tcent1_cor\t", _)
+@chain cor(rmsds[utri], cent2_cors[utri]) println(fh, "RMSD\tcent2_cor\t", _)
+@chain cor(rmsds[utri], fisherrao[utri])  println(fh, "RMSD\tfisherrao\t", _)
 scatter(x=rmsds[utri], y=identFrac[utri], mode="markers") |> plot
 scatter(x=rmsds[utri], y=cent2_cors[utri], mode="markers") |> plot
 
-cor(df2.bitscore, df2.RMSD)
-cor(df2.cent1_cor, df2.RMSD)
-cor(df2.cent2_cor, df2.RMSD)
+@chain cor(df2.bitscore, df2.RMSD)  println(fh, "RMSD\tbitscore\t", _)
+@chain cor(df2.cent1_cor, df2.RMSD) println(fh, "RMSD\tcent1_cor\t", _)
+@chain cor(df2.cent2_cor, df2.RMSD) println(fh, "RMSD\tcent2_cor\t", _)
 scatter(x=df2.bitscore, y=df2.RMSD, mode="markers") |> plot
 
-cor(df2.elastic_dist, df2.bitscore)
-cor(df2.elastic_dist, df2.RMSD)
 # the two measures of curve align dist are not even that correlated
-cor(df2.elastic_dist, df2.fisherrao)
-cor(df2.elastic_dist, df2.cent1_cor)
-cor(df2.elastic_dist, df2.cent2_cor)
+@chain cor(df2.elastic_dist, df2.bitscore)  println(fh, "elastic_dist\tbitscore\t", _)
+@chain cor(df2.elastic_dist, df2.RMSD)      println(fh, "elastic_dist\tRMSD\t", _)
+@chain cor(df2.elastic_dist, df2.fisherrao) println(fh, "elastic_dist\tfisherrao\t", _)
+@chain cor(df2.elastic_dist, df2.cent1_cor) println(fh, "elastic_dist\tcent1_cor\t", _)
+@chain cor(df2.elastic_dist, df2.cent2_cor) println(fh, "elastic_dist\tcent2_cor\t", _)
 
+close(fh)
 
 
 
 # An example to look at the potential for aligning using cent or other topol
 
 i = (df2.pdb .== df2.pdb[end-3]) |> findall |> only
+j = df2.hit[end-3]
 a = cent2[i]
-b = cent2[df2.hit[end-3]]
+b = cent2[j]
 
 row = df2[i, :]
 qvalid = collect(row.qseq) .!= '-'
@@ -245,15 +267,23 @@ qcent2 = cent2[i][row.qrange][valid[qvalid]]
 hcent1 = cent1[row.hit][row.hrange][valid[hvalid]]
 hcent2 = cent2[row.hit][row.hrange][valid[hvalid]]
 
-plot([
-scatter(y=a),
-scatter(y=b)
+p = plot([
+    scatter(y=a, name=df2.pdb[i]),
+    scatter(y=b, name=df2.pdb[j])
 ])
+savefig(p, "cent2_unaligned.png", scale=2)
 
-plot([
-scatter(y=qcent2),
-scatter(y=hcent2)
+p = plot([
+    scatter(y=qcent2, name=df2.pdb[i]),
+    scatter(y=hcent2, name=df2.pdb[j])
 ])
+savefig(p, "cent2_aligned.png", scale=2)
+
+ecdf(df2.bitscore)(df2.bitscore[i])
+ecdf(df2.RMSD)(df2.RMSD[i])
+ecdf(df2.cent2_cor)(df2.cent2_cor[i])
+ecdf(df2.fisherrao)(df2.fisherrao[i])
+ecdf(df2.elastic_dist)(df2.elastic_dist[i])
 
 # so the curves look super similar after alignment, could we align them without 
 # seq?
