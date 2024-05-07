@@ -3,6 +3,7 @@
 if [ `uname` = "Darwin" ]; then
     brew install postgresql@15
 else
+    # on oracle
     wget https://ftp.postgresql.org/pub/source/v15.2/postgresql-15.2.tar.gz
     tar xzf postgresql-15.2.tar.gz && rm postgresql-15.2.tar.gz
     cd ./postgresql-15.2
@@ -21,7 +22,7 @@ else
     echo "export PATH=\$PATH:`git root`/bin/postgresql/bin"
     createdb protTDA
     # interactive shell
-    psql --dbname=protTDA
+    psql --dbname=protTDA --username=opc
 fi
 
 # install the julia package libPQ

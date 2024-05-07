@@ -1,6 +1,6 @@
 CREATE TABLE AF (
     acc       VARCHAR(10) PRIMARY KEY,
-    taxon     INTEGER NOT NULL,
+    tax       INTEGER NOT NULL,
     n         INTEGER NOT NULL,
     maxRep1   INTEGER NOT NULL,
     maxRep2   INTEGER NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE AF (
 
 -- was done after reading data
 create index idx_n         on af(n);
-create index idx_taxon     on af(taxon);
+create index idx_tax       on af(tax);
 create index idx_meanplddt on af(meanplddt);
 create index idx_maxpers1  on af(maxpers1);
 create index idx_maxpers2  on af(maxpers2);

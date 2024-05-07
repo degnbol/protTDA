@@ -38,8 +38,7 @@ SELECT
     AVG(nrep2_t08 - nrep2_t09)     as avg_nrep2_b08,
     AVG(nrep2_t09 - nrep2_t1)      as avg_nrep2_b09,
     AVG(nrep2_t1)                  as avg_nrep2_t1
-FROM taxtree INNER JOIN af
-ON taxtree.tax = af.taxon
+FROM taxtree INNER JOIN af ON af.tax = taxtree.tax
 WHERE taxtree.rankp = 'species' and af.meanplddt > 70
 GROUP BY parent, domain;
 
@@ -532,8 +531,7 @@ SELECT
     AVG(cast(nrep2_t08 - nrep2_t09 as float)/nullif(nrep2,0)) as avg_nrep2_f08,
     AVG(cast(nrep2_t09 - nrep2_t1  as float)/nullif(nrep2,0)) as avg_nrep2_f09,
     AVG(cast(nrep2_t1              as float)/nullif(nrep2,0)) as avg_nrep2_f1
-FROM taxparent INNER JOIN af
-ON taxparent.tax = af.taxon
+FROM taxparent INNER JOIN af ON af.tax = taxparent.tax
 WHERE af.meanplddt > 70 and (
     taxparent.rankp = 'species' OR
     taxparent.rankp = 'genus'   OR
