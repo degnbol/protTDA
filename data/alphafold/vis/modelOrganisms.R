@@ -9,6 +9,7 @@ dt[domain=="E", domain:="Eukaryota"]
 
 # checked for membership in the label column
 organisms=c(
+    "Homo sapiens",
     "Escherichia coli",              
     "Saccharomyces cerevisiae",      
     "Arabidopsis thaliana",          
@@ -39,7 +40,10 @@ organisms=c(
     "Aedes aegypti"
 )
 dt = dt[label%in%organisms]
+fwrite(dt[,.(label,tax=id)], "modelOrganisms.tsv", sep='\t')
 dt[,c("id", "rank", "type"):=NULL]
+
+# go curate numbers for it...
 
 dtt = data.table()
 dtt$Organism = dt$label
@@ -51,5 +55,5 @@ dtt$`Largest loop [%]` = dt[,sprintf("%.2f", avg_maxrep1_pp/avg_n_pp*100)]
 dtt$`Largest void [%]` = dt[,sprintf("%.2f", avg_maxrep2_pp/avg_n_pp*100)]
 dtt = dtt[order(rank(Organism))]
 
-fwrite(dtt, "modelOrganisms.tsv", sep='\t')
+fwrite(dtt, "modelOrganismsPub.tsv", sep='\t')
 
