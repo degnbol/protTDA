@@ -118,6 +118,6 @@ CREATE table domainhist AS
 
 drop table (nrep1_hist, nrep2_hist, maxrep1_hist, maxrep2_hist);
 
-\copy domainhist to "domainhist.csv" csv;
-\copy hist_maxs to "domainhistmaxs.csv" csv;
+\copy domainhist to 'domainhist.csv' csv header;
+\copy hist_maxs to 'domainhistmaxs.csv' csv header;
 
