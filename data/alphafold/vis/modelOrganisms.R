@@ -9,14 +9,42 @@ dt[domain=="E", domain:="Eukaryota"]
 
 # checked for membership in the label column
 organisms=c(
+    # human
     "Homo sapiens",
-    "Escherichia coli",              
+    # bacteria
+    "Escherichia coli",
+    "Bacillus subtilis",
+    "Mycoplasmoides genitalium",
+    "Salmonella enterica",
+    "Streptomyces coelicolor",
+    "Azotobacter vinelandii",
+    "Bacteroides thetaiotaomicron",
+    "Staphylococcus aureus",
+    # archaea
+    ## methanogens
+    "Methanosarcina barkeri", 
+    "Methanococcus maripaludis", 
+    ## halo
+    "Halobacterium salinarum", 
+    "Haloferax volcanii", 
+    ## thermo
+    "Thermococcus kodakarensis", 
+    "Pyrococcus abyssi", 
+    "Pyrococcus furiosus", 
+    ## sulfolobales
+    "Sulfolobus islandicus", 
+    # yeast
     "Saccharomyces cerevisiae",      
+    "Schizosaccharomyces pombe",     
     "Arabidopsis thaliana",          
+    # worm
     "Caenorhabditis elegans",        
+    # fruitfly
     "Drosophila melanogaster",       
     "Danio rerio",                   
+    # mouse
     "Mus musculus",                  
+    # rat
     "Rattus norvegicus",             
     "Xenopus laevis",                
     "Gallus gallus",                 
@@ -24,12 +52,14 @@ organisms=c(
     "Dictyostelium discoideum",      
     "Chlamydomonas reinhardtii",     
     "Neurospora crassa",             
-    "Schizosaccharomyces pombe",     
     "Apis mellifera",                
     "Galleria mellonella",           
     "Strongylocentrotus purpuratus", 
+    # cat
     "Felis catus",                   
+    # dog
     "Canis lupus",                   
+    # rice
     "Oryza sativa",                  
     "Zea mays",                      
     "Sus scrofa",                    
@@ -41,19 +71,5 @@ organisms=c(
 )
 dt = dt[label%in%organisms]
 fwrite(dt[,.(label,tax=id)], "modelOrganisms.tsv", sep='\t')
-dt[,c("id", "rank", "type"):=NULL]
-
-# go curate numbers for it...
-
-dtt = data.table()
-dtt$Organism = dt$label
-dtt$Proteins = dt$proteins_pp
-dtt$Residues = dt[,sprintf("%.2f±%.2f", avg_n_pp, sqrt(var_n_pp))]
-dtt$`Loops per residue`            = dt[,sprintf("%.2f", avg_nrep1_pp/avg_n_pp)]
-dtt$`Voids per residue`            = dt[,sprintf("%.2f", avg_nrep2_pp/avg_n_pp)]
-dtt$`Largest loop [%]` = dt[,sprintf("%.2f", avg_maxrep1_pp/avg_n_pp*100)]
-dtt$`Largest void [%]` = dt[,sprintf("%.2f", avg_maxrep2_pp/avg_n_pp*100)]
-dtt = dtt[order(rank(Organism))]
-
-fwrite(dtt, "modelOrganismsPub.tsv", sep='\t')
+# go curate numbers for it on spartan then modelhist.R
 
