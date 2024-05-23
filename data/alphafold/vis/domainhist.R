@@ -100,6 +100,8 @@ p = plot_grid(
     ncol=1
 )
 ggsave("domainhist.pdf", p, width=13, height=6)
+# install.packages("svglite")
+ggsave("domainhist.svg", p, width=13, height=6)
 
 
 

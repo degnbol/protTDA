@@ -1,3 +1,6 @@
+# horse apomyoglobin
+# https://www.uniprot.org/uniprotkb/P68082/entry#structure
+
 bg white
 
 set_color dred   = [226, 58, 52]
