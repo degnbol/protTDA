@@ -119,6 +119,8 @@ drop table nrep1_hist, nrep2_hist, maxrep1_hist, maxrep2_hist;
 \copy domainhist to 'domainhist.csv' csv header;
 \copy hist_maxs to 'domainhistmaxs.csv' csv header;
 
+-- remaining code is to write modelshist.csv
+
 create table models (
     label TEXT NOT NULL,
     tax INTEGER PRIMARY KEY
@@ -192,6 +194,7 @@ update nrep2_hist   set meas='nrep';
 update maxrep1_hist set meas='maxrep';
 update maxrep2_hist set meas='maxrep';
 
+-- DROP TABLE modelshist;
 CREATE table modelshist AS
   SELECT * FROM nrep1_hist
   UNION ALL
