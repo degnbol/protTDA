@@ -4,6 +4,9 @@ using HDF5, H5Zzstd
 filters = H5Zzstd.ZstdFilter()
 using PlotlyJS
 using Colors, ColorSchemes
+using GZip, JSON
+using Glob: glob
+using Printf
 
 using Graphs
 using SimpleWeightedGraphs
@@ -79,7 +82,7 @@ function leiden(reps, bars, n)
     H |> CliqueExpansion |> py"leiden"
 end
 
-
+## READ
 
 df = CSV.read("MRSA-AF.tsv", DataFrame; delim='\t')
 
@@ -104,7 +107,71 @@ for acc in df.acc
     end
 end
 
+jsons = Dict{String,Vector{Dict{String,Any}}}()
+for fname in glob("PH/*/*.json.gz")
+    acc = split(split(basename(fname), '-')[end], '.')[1]
+    if !haskey(jsons, acc) jsons[acc] = [] end
+    push!(jsons[acc], GZip.open(fname) do io
+        JSON.parse(io)
+    end)
+end
 
+# add to arrays from HDF5s
+df[!, :pos] .= 1
+newrows = DataFrameRow[]
+for (acc, _jsons) in jsons
+    for _json in _jsons
+        _bars1 = hcat(_json["bars1"]...)
+        _bars2 = hcat(_json["bars2"]...)
+        # HDF5 stored bars have persistence in second column
+        _bars1[:,2] .-= _bars1[:,1]
+        _bars2[:,2] .-= _bars2[:,1]
+        row = df[df.acc .== acc, :] |> only
+        row.meanplddt = NaN
+        row.pos = _json["pos"]
+        row.n = _json["n"]
+        row.sequence = row.sequence[row.pos:end][1:row.n]
+        row.nrep1 = length(_json["reps1"])
+        row.nrep2 = length(_json["reps2"])
+        for t in 1:10
+            row["nrep1_t$t"] = sum(_bars1[:,2] .> t)
+        end
+        for t in .1:.1:1.
+            row[rstrip(@sprintf("nrep2_t%02d", 10*t),'0')] = sum(_bars2[:,2] .> t)
+        end
+        row.maxrep1 = length.(_json["reps1"]) |> maximum
+        row.maxrep2 = length.(_json["reps2"]) |> maximum
+        row.maxpers1 = maximum(_bars1[:,2])
+        row.maxpers2 = maximum(_bars2[:,2])
+        _json["pLDDT"] = fill(NaN32, length(_json["x"]))
+        _Cas = hcat([_json[k] for k in ["x","y","z","pLDDT","cent1","cent2"]]...)
+        _reps1 = zeros(Int32, 0, 3)
+        _reps2 = zeros(Int32, 0, 4)
+        for (iRep,rep) in enumerate(_json["reps1"])
+            _rep = hcat(rep...)'
+            _reps1 = vcat(_reps1, [fill(iRep,size(_rep,1)) _rep])
+        end
+        for (iRep,rep) in enumerate(_json["reps2"])
+            _rep = hcat(rep...)'
+            _reps2 = vcat(_reps2, [fill(iRep,size(_rep,1)) _rep])
+        end
+        push!(newrows, row)
+        push!(Cas, _Cas)
+        push!(bars1, _bars1)
+        push!(bars2, _bars2)
+        push!(reps1, _reps1)
+        push!(reps2, _reps2)
+    end
+end
+append!(df, newrows)
+
+# remove the poor predictions
+df = df[Not(7),:]
+Cas = Cas[Not(7)]
+bars1 = bars1[Not(7)]
+bars2 = bars2[Not(7)]
+reps1 = reps1[Not(7)]
+reps2 = reps2[Not(7)]
 
 top1 = (1:nrow(df))[startswith.(df.name, "TOP1")]
 top3 = (1:nrow(df))[startswith.(df.name, "TOP3")]
@@ -138,7 +205,7 @@ rgbs = [round.(Int, rgb .* 255) for rgb in rgbs]
 rgbs = ["rgb("*join(rgb,',')*')' for rgb in rgbs]
 
 mkpath("figs")
-for i in 1:7
+for i in 1:nrow(df)
     seq = collect(df.sequence[i])
 
     traces = [
@@ -150,7 +217,7 @@ for i in 1:7
                   marker_size=5,
                   marker_color="gray",
                   name=df.name[i],
-                  text=join.(zip(seq, 1:length(seq))),
+                  text=join.(zip(seq, (1:length(seq)) .+ df.pos[i])),
                   )
     ]
 
@@ -228,7 +295,7 @@ for i in 1:7
         rep = reps1[i][reps1[i][:,1] .== maxind - top + 1, 2:3]
         cycles = cycle_basis(rep)
         persistence = bars1[i][end-top+1,2]
-        opacity = persistence / bars1[i][end,2] / 2
+        opacity = persistence / bars1[i][end,2] * .9
         for (i_cycle, cycle) in enumerate(cycles)
             push!(traces,
                   scatter3d(;
@@ -240,6 +307,7 @@ for i in 1:7
                             line_width=16,
                             opacity=opacity,
                             name="rep1 $top",
+                            text="persistence=$persistence",
                             legendgroup="rep1 $top",
                             visible="legendonly",
                             # combined with legendgroup, this means multiple 
@@ -255,7 +323,7 @@ for i in 1:7
     maxind = size(bars2[i],1)
     _ijk = reps2[i][reps2[i][:,1] .> maxind - topn2, :]
     persistences = bars2[i][end-topn2+1:end,2]
-    opacities = persistences./maximum(persistences)./2
+    opacities = persistences./maximum(persistences) .* .9
     # rgbs = palette[maxind .- _ijk[:,1] .+ 1]
     # rgbs = hcat([[rgb.r, rgb.g, rgb.b] for rgb in rgbs]...)'
     # rgbs = round.(Int, rgbs .* 255)
@@ -269,7 +337,7 @@ for i in 1:7
                      j=_ijk[_ijk[:,1].==maxind-top+1,3],
                      k=_ijk[_ijk[:,1].==maxind-top+1,4],
                      opacity=opacities[end-top+1],
-                     text="pers = $(persistences[end-top+1])",
+                     text="persistence=$(persistences[end-top+1])",
                      name="rep2 $top",
                      showlegend=true,
                      visible="legendonly"
@@ -277,12 +345,17 @@ for i in 1:7
               )
     end
 
-    plt = plot(traces; config=PlotConfig(
+    plt = plot(traces,
+               Layout(;
+                   title_text="Start position=$(df.pos[i])",
+                      bgcolor="lightgray",
+               );
+               config=PlotConfig(
             displaylogo=false,
             # showTips=false # not implemented in the julia version and last change to the github was 5 months ago.
         ))
 
-    savefig(plt, "figs/$(df.name[i]).html")
+    savefig(plt, "figs/$(df.name[i])_pos$(df.pos[i]).html")
 end
 
 
