@@ -7,14 +7,12 @@ using Colors, ColorSchemes
 using GZip, JSON
 using Glob: glob
 using Printf
+using BioAlignments, BioSequences
 
 using Graphs
 using SimpleWeightedGraphs
 
 using PyCall
-# leiden = pyimport("leidenalg")
-# igraph constructor that takes list of (source, destination, edge property) tuple
-ig = pyimport("igraph").Graph.TupleList
 
 function Graphs.SimpleGraph(edges::Matrix{Int32})
     edges |> eachrow .|> Tuple .|> Graphs.SimpleEdge |> SimpleGraph
@@ -176,6 +174,9 @@ reps2 = reps2[Not(7)]
 top1 = (1:nrow(df))[startswith.(df.name, "TOP1")]
 top3 = (1:nrow(df))[startswith.(df.name, "TOP3")]
 
+
+## PLOTTING
+
 # persistence diagrams
 function scat(i)
     plot(
@@ -183,17 +184,20 @@ function scat(i)
                 x=bars1[i][:, 1],
                 y=vec(sum(bars1[i], dims=2)),
                 mode="markers",
-                name=df.name[i]
+                name=df.name[i],
                 ),
         Layout(
             xaxis_range=[0, 50],
-            yaxis_range=[0, 50]
+            yaxis_range=[0, 50],
+            xaxis_title="birth",
+            yaxis_title="death",
         )
     )
 end
-vcat([scat(i) for i in top1]...)
-vcat([scat(i) for i in top3]...)
-
+pltDiagram1 = vcat([scat(i) for i in top1]...)
+pltDiagram2 = vcat([scat(i) for i in top3]...)
+savefig(pltDiagram1, "figs/persistence_diagrams-TOP1.html")
+savefig(pltDiagram2, "figs/persistence_diagrams-TOP3.html")
 
 topn1 = 10
 topn2 = 20
@@ -203,6 +207,8 @@ palette = ColorSchemes.glasbey_bw_minc_20_minl_30_n256
 rgbs = [[rgb.r, rgb.g, rgb.b] for rgb in palette]
 rgbs = [round.(Int, rgb .* 255) for rgb in rgbs]
 rgbs = ["rgb("*join(rgb,',')*')' for rgb in rgbs]
+
+alltraces = []
 
 mkpath("figs")
 for i in 1:nrow(df)
@@ -345,6 +351,8 @@ for i in 1:nrow(df)
               )
     end
 
+    push!(alltraces, traces)
+
     plt = plot(traces,
                Layout(;
                    title_text="Start position=$(df.pos[i])",
@@ -360,4 +368,88 @@ end
 
 
 
+# align sequences to compare
+seqs = LongAA.(df.sequence)
+costmodel = AffineGapScoreModel(BLOSUM62, gap_open=-10, gap_extend=-1)
+align47 = pairalign(OverlapAlignment(), seqs[4], seqs[7], costmodel)
+align74 = pairalign(OverlapAlignment(), seqs[7], seqs[4], costmodel)
+
+xs = Int[]
+x = 0
+skip = 0
+for (seqAA, refAA) in collect(align74.aln)
+    if refAA != AA_Gap
+        x += 1
+    end
+    if seqAA != AA_Gap
+        push!(xs, x)
+    end
+end
+
+plt = [
+plot([
+    scatter(;
+            y=Cas[4][:,5],
+            name="MRSA cent1",
+            mode="lines",
+    ),
+    scatter(;
+            y=Cas[7][:,5],
+            name="Human cent1",
+            mode="lines",
+            visible="legendonly",
+    ),
+    scatter(;
+            x=xs[xs .> 0],
+            y=Cas[7][xs .> 0,5],
+            name="Human cent1 aligned",
+            mode="markers+lines",
+            line_width=1.5,
+            marker_size=5,
+            text=(1:sum(xs .> 0)) .+ sum(xs .== 0),
+    ),
+    ])
+plot([
+    scatter(;
+            y=Cas[4][:,6],
+            name="MRSA cent2",
+            mode="lines",
+    ),
+    scatter(;
+            y=Cas[7][:,6],
+            name="Human cent2",
+            mode="lines",
+            visible="legendonly",
+    ),
+    scatter(;
+            x=xs[xs .> 0],
+            y=Cas[7][xs .> 0,6],
+            name="Human cent2 aligned",
+            mode="markers+lines",
+            line_width=1.5,
+            marker_size=5,
+            text=(1:sum(xs .> 0)) .+ sum(xs .== 0),
+    ),
+    ])
+]
+savefig(plt, "figs/MRSA-centAlign.html")
+
+
+trace = alltraces[4]
+push!(trace,
+      scatter3d(;
+                x=Cas[4][300:450, 1],
+                y=Cas[4][300:450, 2],
+                z=Cas[4][300:450, 3],
+                marker=attr(
+                size=5,
+                color="red",
+                ),
+                mode="markers+lines",
+                name="cent1 difference",
+                )
+      )
+
+plt = plot(trace);
+savefig(plt, "figs/MRSA-diff.html")
 
