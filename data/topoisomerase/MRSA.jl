@@ -396,7 +396,7 @@ x = 0
 skip = 0
 for (seqAA, refAA) in collect(align74.aln)
     if refAA != AA_Gap
-        x += 1
+        global x += 1
     end
     if seqAA != AA_Gap
         push!(xs, x)
