@@ -34,18 +34,18 @@ function rep2H(reps::Vector{Vector{Vector{Int}}}, n::Int)
 end
 
 INFILES..., OUTDIR = ARGS
-@assert isdir(OUTDIR) || !isfile(OUTDIR), "No OUTDIR provided: $OUTDIR"
+@assert isdir(OUTDIR) || !isfile(OUTDIR) "No OUTDIR provided: $OUTDIR"
 mkpath(OUTDIR)
 
 for infname in INFILES
-    outfname = joinpath(outdir, splitext(basename(infname))[1] * ".h5")
+    outfname = joinpath(OUTDIR, splitext(basename(infname))[1] * ".h5")
     if isfile(outfname)
         @info "File already exists: $outfname. Not overwriting."
         continue
     end
 
     df = CSV.read(infname, DataFrame; delim='\t')
-    PC = df[!, [:x, :y, :z]]
+    PC = df[!, [:x, :y, :z]] |> eachrow .|> Tuple
 
     n = length(PC)
     if n < 5
@@ -79,15 +79,16 @@ for infname in INFILES
         att["n"] = n
         att["resi"] = df.resi
         # att["AA"] = seq # needs to be written into the TSVs
-        fid["Cas"] = hcat(d["x"], d["y"], d["z"], pLDDTs[acc], d["cent1"], d["cent2"]) .|> Float32
-        bars1 = hcat(d["bars1"]...) |> Matrix{Float32}
-        bars2 = hcat(d["bars2"]...) |> Matrix{Float32}
+        # pLLDT no longer meaningful
+        fid["Cas"] = hcat(df.x, df.y, df.z, fill(-1, n), cent1, cent2) .|> Float32
+        bars1 = b1 |> Matrix{Float32}
+        bars2 = b2 |> Matrix{Float32}
         bars1[:, 2] .-= bars1[:, 1] # death -> persistence
         bars2[:, 2] .-= bars2[:, 1] # death -> persistence
         fid["bars1"] = bars1
         fid["bars2"] = bars2
-        reps1s = reduce.(hcat, d["reps1"]; init=zeros(Int32, 2, 0)) .|> Matrix{Int32}
-        reps2s = reduce.(hcat, d["reps2"]; init=zeros(Int32, 3, 0)) .|> Matrix{Int32}
+        reps1s = reduce.(hcat, r1; init=zeros(Int32, 2, 0)) .|> Matrix{Int32}
+        reps2s = reduce.(hcat, r2; init=zeros(Int32, 3, 0)) .|> Matrix{Int32}
         reps1s = Int32[vcat(fill.(1:length(reps1s), size.(reps1s, 2))...) reduce(hcat, reps1s; init=zeros(Int32, 2, 0))']
         reps2s = Int32[vcat(fill.(1:length(reps2s), size.(reps2s, 2))...) reduce(hcat, reps2s; init=zeros(Int32, 3, 0))']
         try fid["reps1", filters=filters, chunk=size(reps1s)] = reps1s
@@ -98,10 +99,4 @@ for infname in INFILES
         end
     end
 end
-
-# TODO: there's gaps and it's new to deal with it.
-# There are thoughts about how much to keep format and consistency.
-# You can read the tsvs of the same names alongside to show the correct amino acids on the figures.
-# otherwise it could be added as an extra attr since it's int it doesn't make so much sense to add to Cas.
-# I think I add it as an extra attr and use that.
 

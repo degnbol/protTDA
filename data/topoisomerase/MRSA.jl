@@ -1,11 +1,8 @@
 #!/usr/bin/env julia
 using DataFrames, CSV
 using HDF5, H5Zzstd
-filters = H5Zzstd.ZstdFilter()
 using PlotlyJS
 using Colors, ColorSchemes
-using GZip, JSON
-using Glob: glob
 using Printf
 using BioAlignments, BioSequences
 
@@ -13,6 +10,10 @@ using Graphs
 using SimpleWeightedGraphs
 
 using PyCall
+
+ROOT = `git root` |> readchomp
+include("$ROOT/src/util/plotly.jl")
+using Chain
 
 function Graphs.SimpleGraph(edges::Matrix{Int32})
     edges |> eachrow .|> Tuple .|> Graphs.SimpleEdge |> SimpleGraph
@@ -84,15 +85,49 @@ end
 
 df = CSV.read("MRSA-AF.tsv", DataFrame; delim='\t')
 
-# read HDF5s
+# read AF HDF5s
+Cas_AF = Matrix{Float32}[]
+bars1_AF = Matrix{Float32}[]
+bars2_AF = Matrix{Float32}[]
+reps1_AF = Matrix{Int32}[]
+reps2_AF = Matrix{Int32}[]
+for acc in df.acc
+    h5open("HDF5/$(acc[1:5]).h5") do fid
+        g = fid[acc]
+        # x, y, z, pLDDT, cent1, cent2
+        push!(Cas_AF, g["Cas"][:,:])
+        # birth, death
+        push!(bars1_AF, g["bars1"][:,:])
+        push!(bars2_AF, g["bars2"][:,:])
+        # representative index, vertex 1, vertex 2 (one edge per row)
+        push!(reps1_AF, g["reps1"][:,:])
+        # representative index, vertex 1, vertex 2, vertex 3 (one triangle per row)
+        push!(reps2_AF, g["reps2"][:,:])
+    end
+end
+# AF structures simply run along the sequence from 1 to finish, 
+# as opposed to solved structure which may have gaps or start later than 1.
+resis_AF = [1:n for n in df.n]
+
+# read solved structure HDF5s
+fnames_PH = readdir("PH/")
+# skip failed structures with NaN, TODO: rerun PH where NaN is removed
+fnames_PH = fnames_PH[.!startswith.(fnames_PH, "1r49_C_1")]
+pdbs = String[]
+accs = String[]
 Cas = Matrix{Float32}[]
 bars1 = Matrix{Float32}[]
 bars2 = Matrix{Float32}[]
 reps1 = Matrix{Int32}[]
 reps2 = Matrix{Int32}[]
-for acc in df.acc
-    h5open("HDF5/$(acc[1:5]).h5") do fid
-        g = fid[acc]
+resis = Vector{Int32}[]
+for fname in fnames_PH
+    acc = split(split(fname, '-')[end], '.')[1]
+    acc ∈ df.acc || continue
+    push!(pdbs, split(fname, '-')[begin])
+    push!(accs, acc)
+    h5open("PH/$fname") do fid
+        g = fid # top-level
         # x, y, z, pLDDT, cent1, cent2
         push!(Cas, g["Cas"][:,:])
         # birth, death
@@ -102,102 +137,89 @@ for acc in df.acc
         push!(reps1, g["reps1"][:,:])
         # representative index, vertex 1, vertex 2, vertex 3 (one triangle per row)
         push!(reps2, g["reps2"][:,:])
+        push!(resis, attrs(g)["resi"])
     end
 end
 
-jsons = Dict{String,Vector{Dict{String,Any}}}()
-for fname in glob("PH/*/*.json.gz")
-    acc = split(split(basename(fname), '-')[end], '.')[1]
-    if !haskey(jsons, acc) jsons[acc] = [] end
-    push!(jsons[acc], GZip.open(fname) do io
-        JSON.parse(io)
-    end)
-end
-
-# add to arrays from HDF5s
-df[!, :pos] .= 1
+# There is one AF PH per row of df currently.
+# Add rows to dataframe for each PH on solved structure.
+Cas = [Cas_AF; Cas]
+bars1 = [bars1_AF; bars1]
+bars2 = [bars2_AF; bars2]
+reps1 = [reps1_AF; reps1]
+reps2 = [reps2_AF; reps2]
+resis = [resis_AF; resis]
 newrows = DataFrameRow[]
-for (acc, _jsons) in jsons
-    for _json in _jsons
-        _bars1 = hcat(_json["bars1"]...)
-        _bars2 = hcat(_json["bars2"]...)
-        # HDF5 stored bars have persistence in second column
-        _bars1[:,2] .-= _bars1[:,1]
-        _bars2[:,2] .-= _bars2[:,1]
-        row = df[df.acc .== acc, :] |> only
-        row.meanplddt = NaN
-        row.pos = _json["pos"]
-        row.n = _json["n"]
-        row.sequence = row.sequence[row.pos:end][1:row.n]
-        row.nrep1 = length(_json["reps1"])
-        row.nrep2 = length(_json["reps2"])
-        for t in 1:10
-            row["nrep1_t$t"] = sum(_bars1[:,2] .> t)
-        end
-        for t in .1:.1:1.
-            row[rstrip(@sprintf("nrep2_t%02d", 10*t),'0')] = sum(_bars2[:,2] .> t)
-        end
-        row.maxrep1 = length.(_json["reps1"]) |> maximum
-        row.maxrep2 = length.(_json["reps2"]) |> maximum
-        row.maxpers1 = maximum(_bars1[:,2])
-        row.maxpers2 = maximum(_bars2[:,2])
-        _json["pLDDT"] = fill(NaN32, length(_json["x"]))
-        _Cas = hcat([_json[k] for k in ["x","y","z","pLDDT","cent1","cent2"]]...)
-        _reps1 = zeros(Int32, 0, 3)
-        _reps2 = zeros(Int32, 0, 4)
-        for (iRep,rep) in enumerate(_json["reps1"])
-            _rep = hcat(rep...)'
-            _reps1 = vcat(_reps1, [fill(iRep,size(_rep,1)) _rep])
-        end
-        for (iRep,rep) in enumerate(_json["reps2"])
-            _rep = hcat(rep...)'
-            _reps2 = vcat(_reps2, [fill(iRep,size(_rep,1)) _rep])
-        end
-        push!(newrows, row)
-        push!(Cas, _Cas)
-        push!(bars1, _bars1)
-        push!(bars2, _bars2)
-        push!(reps1, _reps1)
-        push!(reps2, _reps2)
+for i in 1:length(pdbs)
+    ii = i+nrow(df)
+    row = df[df.acc .== accs[i], :] |> only
+    row.pdb = pdbs[i]
+    row.meanplddt = NaN
+    # there may be negative resi indexes if a few amino acids are added before the sequence (e.g. https://www.rcsb.org/3d-view/5GVC)
+    # we just name them X, but if you want to include their AA name, then you will need to write the AA sequence with them to the HDF5 file made in ./PH.sh
+    _resis = resis[ii]
+    prelude = _resis .< 1
+    row.n = length(_resis)
+    row.sequence = 'X' ^ sum(prelude) * row.sequence[_resis[.!prelude]]
+    row.nrep1 = reps1[ii][end,1]
+    row.nrep2 = reps2[ii][end,1]
+    for t in 1:10
+        row["nrep1_t$t"] = sum(bars1[ii][:,2] .> t)
     end
+    for t in .1:.1:1.
+        row[rstrip(@sprintf("nrep2_t%02d", 10*t),'0')] = sum(bars2[ii][:,2] .> t)
+    end
+    row.maxrep1 = countmap(reps1[ii][:,1]) |> values |> maximum
+    row.maxrep2 = countmap(reps2[ii][:,1]) |> values |> maximum
+    row.maxpers1 = maximum(bars1[ii][:,2])
+    row.maxpers2 = maximum(bars2[ii][:,2])
+    push!(newrows, row)
 end
 append!(df, newrows)
 
-# remove the poor predictions
-df = df[Not(7),:]
-Cas = Cas[Not(7)]
-bars1 = bars1[Not(7)]
-bars2 = bars2[Not(7)]
-reps1 = reps1[Not(7)]
-reps2 = reps2[Not(7)]
+seqs = [join.(zip(resis[i], df.sequence[i])) for i in 1:nrow(df)]
+
+titles = df.acc .* '-' .* [fill("AF", nrow(df) - length(pdbs)); pdbs]
 
 top1 = (1:nrow(df))[startswith.(df.name, "TOP1")]
 top3 = (1:nrow(df))[startswith.(df.name, "TOP3")]
-
 
 ## PLOTTING
 
 # persistence diagrams
 function scat(i)
-    plot(
-        scatter(;
-                x=bars1[i][:, 1],
-                y=vec(sum(bars1[i], dims=2)),
-                mode="markers",
-                name=df.name[i],
-                ),
-        Layout(
-            xaxis_range=[0, 50],
-            yaxis_range=[0, 50],
-            xaxis_title="birth",
-            yaxis_title="death",
-        )
-    )
+    scatter(;
+            x=bars1[i][:, 1],
+            y=vec(sum(bars1[i], dims=2)),
+            mode="markers",
+            name=titles[i],
+            )
 end
-pltDiagram1 = vcat([scat(i) for i in top1]...)
-pltDiagram2 = vcat([scat(i) for i in top3]...)
-savefig(pltDiagram1, "figs/persistence_diagrams-TOP1.html")
-savefig(pltDiagram2, "figs/persistence_diagrams-TOP3.html")
+function subplots(traces)
+    nrows = floor(Int, √length(traces))
+    ncols = ceil(Int, length(traces) / nrows)
+    fig = make_subplots(cols=ncols, rows=nrows)
+    for (i, trace) in enumerate(traces)
+        add_trace!(fig, trace, row=(i-1) ÷ ncols + 1, col=(i-1) % ncols + 1)
+    end
+    fig
+end
+function square_subplots!(fig, xyrange)
+    relayout!(
+        fig;
+        yaxes(fig, scaleanchor="x" .* [""; string.(2:length(top1))])...,
+        xaxes(fig, range=Ref(xyrange))...,
+        yaxes(fig, range=Ref(xyrange))...,
+    )
+    fig
+end
+
+pltDiagramTOP1 = @chain scat.(top1) subplots square_subplots!([0, 50])
+pltDiagramTOP3 = @chain scat.(top3) subplots square_subplots!([0, 50])
+relayout!(pltDiagramTOP1, title_text="TOP1")
+relayout!(pltDiagramTOP3, title_text="TOP3")
+savefig(pltDiagramTOP1, "figs/persistence_diagrams-TOP1.html")
+savefig(pltDiagramTOP3, "figs/persistence_diagrams-TOP3.html")
 
 topn1 = 10
 topn2 = 20
@@ -212,8 +234,6 @@ alltraces = []
 
 mkpath("figs")
 for i in 1:nrow(df)
-    seq = collect(df.sequence[i])
-
     traces = [
         # main basic gray point cloud
         scatter3d(;
@@ -222,10 +242,26 @@ for i in 1:nrow(df)
                   z=Cas[i][:, 3],
                   marker_size=5,
                   marker_color="gray",
-                  name=df.name[i],
-                  text=join.(zip(seq, (1:length(seq)) .+ df.pos[i])),
+                  name=titles[i],
+                  text=seqs[i],
                   )
     ]
+
+    # plddt if predicted structure
+    any(isnan.(Cas[i][:, 4])) ||
+    push!(traces,
+          scatter3d(;
+                    x=Cas[i][:, 1],
+                    y=Cas[i][:, 2],
+                    z=Cas[i][:, 3],
+                    marker_size=5,
+                    marker_color=Cas[i][:, 4],
+                    mode="markers",
+                    name="pLDDT (prediction quality)",
+                    visible="legendonly",
+                    text=Cas[i][:, 4],
+                    )
+          );
 
     # cent1
     push!(traces,
@@ -259,7 +295,7 @@ for i in 1:nrow(df)
 
     # comm1
     comm = leiden(reps1[i], bars1[i], size(Cas[i],1))
-    _colors = [c > 0 ? rgbs[c] : "gray" for c in comm]
+    _colors = [c > 0 && c ≤ length(rgbs) ? rgbs[c] : "gray" for c in comm]
     push!(traces,
           scatter3d(;
                     x=Cas[i][:, 1],
@@ -278,7 +314,7 @@ for i in 1:nrow(df)
 
     # comm2
     comm = leiden(reps2[i], bars2[i], size(Cas[i],1))
-    _colors = [c > 0 ? rgbs[c] : "gray" for c in comm]
+    _colors = [c > 0 && c ≤ length(rgbs) ? rgbs[c] : "gray" for c in comm]
     push!(traces,
           scatter3d(;
                     x=Cas[i][:, 1],
@@ -355,7 +391,7 @@ for i in 1:nrow(df)
 
     plt = plot(traces,
                Layout(;
-                   title_text="Start position=$(df.pos[i])",
+                      title_text=df.name[i],
                       bgcolor="lightgray",
                );
                config=PlotConfig(
@@ -363,9 +399,8 @@ for i in 1:nrow(df)
             # showTips=false # not implemented in the julia version and last change to the github was 5 months ago.
         ))
 
-    savefig(plt, "figs/$(df.name[i])_pos$(df.pos[i]).html")
+    savefig(plt, "figs/$(df.name[i])-$(titles[i]).html")
 end
-
 
 
 # align sequences to compare
