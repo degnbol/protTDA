@@ -14,6 +14,7 @@ using PyCall
 ROOT = `git root` |> readchomp
 include("$ROOT/src/util/plotly.jl")
 using Chain
+using StatsBase: countmap
 
 function Graphs.SimpleGraph(edges::Matrix{Int32})
     edges |> eachrow .|> Tuple .|> Graphs.SimpleEdge |> SimpleGraph
@@ -195,25 +196,6 @@ function scat(i)
             name=titles[i],
             )
 end
-function subplots(traces)
-    nrows = floor(Int, √length(traces))
-    ncols = ceil(Int, length(traces) / nrows)
-    fig = make_subplots(cols=ncols, rows=nrows)
-    for (i, trace) in enumerate(traces)
-        add_trace!(fig, trace, row=(i-1) ÷ ncols + 1, col=(i-1) % ncols + 1)
-    end
-    fig
-end
-function square_subplots!(fig, xyrange)
-    relayout!(
-        fig;
-        yaxes(fig, scaleanchor="x" .* [""; string.(2:length(top1))])...,
-        xaxes(fig, range=Ref(xyrange))...,
-        yaxes(fig, range=Ref(xyrange))...,
-    )
-    fig
-end
-
 pltDiagramTOP1 = @chain scat.(top1) subplots square_subplots!([0, 50])
 pltDiagramTOP3 = @chain scat.(top3) subplots square_subplots!([0, 50])
 relayout!(pltDiagramTOP1, title_text="TOP1")
@@ -248,7 +230,7 @@ for i in 1:nrow(df)
     ]
 
     # plddt if predicted structure
-    any(isnan.(Cas[i][:, 4])) ||
+    any(isnan.(Cas[i][:, 4])) || all(Cas[i][:, 4] .< 0) ||
     push!(traces,
           scatter3d(;
                     x=Cas[i][:, 1],

@@ -50,10 +50,42 @@ function _axes(xy::Char, indices; kwargs...)
     end
     ret
 end
-_indices(index::Int) = _indices(index:index)
+"""
+Provide a figure to get indices for all sublots.
+"""
 _indices(fig::PlotlyJS.SyncPlot) = _indices(1:length(fig.plot.data))
+_indices(index::Int) = _indices(index:index)
 function _indices(indices)
     indices = indices |> collect .|> string
     indices[indices .== "1"] .= ""
     indices
 end
+
+"""
+Conveniently make subplots without thinking about row and column layouts.
+"""
+function subplots(traces)
+    nrows = floor(Int, √length(traces))
+    ncols = ceil(Int, length(traces) / nrows)
+    fig = make_subplots(cols=ncols, rows=nrows)
+    for (i, trace) in enumerate(traces)
+        add_trace!(fig, trace, row=(i-1) ÷ ncols + 1, col=(i-1) % ncols + 1)
+    end
+    fig
+end
+
+"""
+Make all subplots square with the same xrange and yrange.
+- fig: e.g. made with `make_subplots` followed by calls to `add_trace!`.
+- xyrange: e.g. `[0, 50]`
+"""
+function square_subplots!(fig, xyrange)
+    relayout!(
+        fig;
+        yaxes(fig, scaleanchor="x" .* [""; string.(2:length(top1))])...,
+        xaxes(fig, range=Ref(xyrange))...,
+        yaxes(fig, range=Ref(xyrange))...,
+    )
+    fig
+end
+
