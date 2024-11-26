@@ -1,6 +1,8 @@
 #!/usr/bin/env julia
-using Gadfly
 using DataFrames
+using Gadfly
+# for PDF
+import Cairo, Fontconfig
 
 df = DataFrame(nPersist=Int[],
                N=Int[],
@@ -50,11 +52,43 @@ df = transform(groupby(df, :lang), :time => (x -> x .- minimum(x)) => :time)
 # time is in ms for js and seconds for jl
 df[df.lang .== "js", :time] .= round.(Int, df[df.lang .== "js", :time] ./ 1000)
 
-plts = [plot(df, x=:N, y=c, color=:lang) for c in setdiff(names(df), ["lang", "N"])]
+# rename for nicer plotting
+df.lang[df.lang .== "jl"] .= "Julia"
+df.lang[df.lang .== "js"] .= "JavaScript"
+rename!(df, :lang => "Language")
 
-set_default_plot_size(10cm, 100cm)
-plt = vstack(plts)
+ylabs = Dict(
+    "nPersist" => "Filtered proteins",
+    "N" => "Queried proteins",
+    "duration" => "Duration",
+    "time" => "Time",
+    "fsUsedSize" => "Disk usage",
+    "objects" => "Objects",
+    "avgObjSize" => "Average object size",
+    "dataSize" => "Data size",
+    "storageSize" => "Storage size",
+    "indexSize" => "Index size",
+    "totalSize" => "Total size"
+)
 
-import Cairo, Fontconfig
+plts = [
+    plot(df, x="N", y=c, color=:Language, Guide.ylabel(ylabs[c]), Theme(key_position=:none))
+    for c in setdiff(names(df), ["Language", "N"])
+]
+
+
+hstack(
+    vstack(plts[1:3]..., plts[end-1]),
+    vstack(plts[4:7]...),
+    # add color legend
+    vstack([plot(df, color=:Language, Geom.blank); [plot() for _ in 1:3]]...)
+)
+
+dfl = stack(df, setdiff(names(df), ["Language", "N"]))
+# dropmissing!(dfl)
+
+set_default_plot_size(12cm, 25cm)
+plt = plot(dfl, x=:N, y=:value, ygroup=:variable, color=:Language, Geom.subplot_grid(Geom.point, free_y_axis=true), Guide.ylabel(""));
+# plt
 draw(PDF("query_speed.pdf"), plt)
 

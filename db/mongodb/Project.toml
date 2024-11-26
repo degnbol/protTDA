@@ -1,0 +1,6 @@
+[deps]
+Cairo = "159f3aea-2a34-519c-b102-8c37f9878175"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Fontconfig = "186bb1d3-e1f7-5a2c-a377-96d770f13627"
+Gadfly = "c91e804a-d5a3-530f-b6f0-dfbca275c004"
+TerminalPager = "0c614874-6106-40ed-a7c2-2f1cd0bff883"
