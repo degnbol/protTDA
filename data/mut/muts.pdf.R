@@ -28,6 +28,7 @@ ggplot(dtm, aes(Structural, TIF, color=Disease, fill=Structural)) +
     theme_bw() +
     scale_fill_manual(values=c("white", "#e68e87")) +
     scale_color_manual(values=c("#2f2f2f", "#c20d00")) +
+    scale_y_continuous(expand=expansion(mult=c(0,0))) +
     theme(
         panel.grid.major.x=element_blank(),
         panel.grid.minor.x=element_blank(),
