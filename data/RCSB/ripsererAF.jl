@@ -226,7 +226,10 @@ for _ in 1:10
         touch(inprog)
         println(PDB)
         infname = "mmCIF/$d1/$PDB.cif.gz"
-        cifPH(infname, outdir)
+        try cifPH(infname, outdir)
+        catch;
+            @error "Some problem"
+        end
         rm(inprog) 
         touch(comple)
     end
