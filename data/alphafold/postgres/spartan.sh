@@ -6,3 +6,4 @@ pg_ctl -D ./PG -l PG.log start
 
 psql --dbname=protTDA --username=opc
 
+pg_ctl -D ./PG stop
