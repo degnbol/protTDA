@@ -14,6 +14,28 @@ SELECT
 FROM taxtree INNER JOIN af ON af.tax = taxtree.tax
 WHERE taxtree.rankp = 'species' and af.meanplddt > 70;
 
+-- count how many species the proteins with zero richness are taken from.
+create table nullrich as
+select domain, count(distinct tax) as ntaxnull
+from pern
+where richness is null
+group by domain;
+create table utax as
+select domain, count(distinct tax) as ntax
+from pern
+group by domain;
+create table fracnull as
+select
+    nullrich.domain,
+    ntaxnull,
+    ntax,
+    ntaxnull::numeric / ntax as f_containsnull
+from nullrich inner join utax
+on nullrich.domain = utax.domain;
+\copy fracnull to 'tax_contains_rich0.csv' csv header;
+-- these numbers are the same, i.e. some 0-richness proteins are found in every species.
+drop table nullrich, utax, fracnull;
+
 CREATE TABLE speciespern as
 SELECT
     domain,
