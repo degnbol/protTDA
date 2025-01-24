@@ -87,17 +87,23 @@ dt[is.na(dt)] = 0
 dt = dt[order(bucket)]
 
 # domain average
-dt[bucket!=-1, richness:=bucket2richness(bucket)]
-dt[bucket==-1, richness:=0]
-dt[meas=="richness", .(richness.avg=sum(richness*freq)/sum(freq)), by=domain]
+dt.avg = dt[meas=="richness", .(domain, bucket, freq, weighted)]
+dt.avg[bucket!=-1, richness:=bucket2richness(bucket)]
+dt.avg[bucket==-1, richness:=0]
+dt.avg = dt.avg[, .(richness.avg=sum(richness*freq)/sum(freq)), by=domain]
+dt.avg
+# TODO you can use these numbers instead for the lines on the tree fig colourscale,
+# which is different by being computed on individual proteins rather than division for domains overall.
+# Or you can completely remove those lines since it's unusual.
 
 # this table shows how many are discarded from having 0 richness
 dt.0 = merge(
-    dt[bucket==-1,.(domain,n.prots.discarded=freq,weighted)],
+    dt[bucket==-1,.(domain,n.prots.discarded=freq,n.weighted.discarded=weighted)],
     dt[meas=="richness",.(n.prots.total=sum(freq), n.species.total=sum(weighted)),by=domain],
     by="domain"
 )
 dt.0[,frac.prots.discarded:=n.prots.discarded/n.prots.total]
+dt.0[,frac.weighted.discarded:=n.weighted.discarded/n.prots.total]
 dt.0
 dt = dt[bucket!=-1]
 
@@ -222,7 +228,7 @@ plt_common = function(show.legend, measname, xname) {
     coord_cartesian(clip="off")
 }
 
-p = plot_grid(
+p1 = plot_grid(
     p.dens,
     p.rich,
     plt_common(F, "nrep",     "Representatives per residue"),
@@ -230,7 +236,17 @@ p = plot_grid(
     labels="AUTO",
     ncol=1
 )
-p
+p1
+
+p2 = plot_grid(
+    p.dens,
+    p.rich,
+    plt_common(F, "nrep",     "Representatives per residue"),
+    plt_common(T, "maxrep",   "Max simplices per residue"),
+    labels="AUTO",
+    ncol=1
+)
+p2
 
 # ggsave("domainhist.pdf", p, width=13, height=6)
 # install.packages("svglite")
