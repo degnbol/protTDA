@@ -1,10 +1,6 @@
 #!/usr/bin/env Rscript
-suppressPackageStartupMessages(library(data.table))
-suppressPackageStartupMessages(library(ggplot2))
-# install.packages("cowplot")
-library(cowplot)
-# install.packages("ggh4x")
-library(ggh4x)
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(data.table, ggplot2, cowplot, ggh4x, svglite)
 
 green = "#5fb12a"
 blue  = "#267592"
@@ -157,15 +153,15 @@ p.rich = ggplot(dt.rich.plt, aes(
         label=bucket2richness.fmt,
         breaks=richness2bucket(breaks)
     ) +
-    scale_fill_manual(name="Domain", values=c(red, green, blue)) +
-    scale_color_manual(name="Domain", values=c(red, green, blue)) +
+    scale_fill_manual( name="Domain", values=c(red, green, blue), labels=c("Archaea", "Bacteria", "Eukayota")) +
+    scale_color_manual(name="Domain", values=c(red, green, blue), labels=c("Archaea", "Bacteria", "Eukayota")) +
     geom_rect(ymin=0, alpha=0.3, position="identity", show.legend=FALSE) +
     geom_step(
         mapping=aes(color=domain),
         direction="hv",
         position="identity",
         linewidth=.2,
-        show.legend=FALSE
+        show.legend=TRUE
     ) +
     theme_minimal() +
     theme(
@@ -176,8 +172,15 @@ p.rich = ggplot(dt.rich.plt, aes(
         axis.ticks.y=element_blank(),
         axis.title.y=element_blank(),
         panel.spacing=unit(0, "lines"),
-        legend.position="inside",
-        legend.position.inside=c(0.9, 1.1)
+        legend.position = "inside",
+        # legend.background = element_rect(colour="white"),
+        legend.justification.top="left",
+        legend.justification.left="top",
+        legend.justification.bottom = "right",
+        legend.justification.inside=c(1, 1),
+        legend.position.inside = c(1.03,1),
+        legend.title=element_text(margin=margin(4,0,4,4)),
+        legend.key.height=unit(10, "pt")
     ) +
     guides(color=guide_legend(override.aes=list(linewidth=1))) +
     # disable clipping since a tiny bit of the plot outline from geom_step is cut by the clipping mask.
@@ -191,48 +194,45 @@ plt_common = function(show.legend, measname, xname) {
         xmin=xmin, xmax=xmin+w, ymax=densw,
         x=xmin, y=densw
     )) +
-    scale_x_continuous(name=xname, expand=c(0,0)) +
-    facet_grid(rows=vars(H), scales="free_y") +
-    # from ggh4x
-    facetted_pos_scales(y=list(
-        scale_y_continuous(expand=expansion(mult=c(0,0))),
-        scale_y_reverse(   expand=expansion(mult=c(0,0)))
-        # An alternative to disabling clipping:
-        # scale_y_continuous(expand=expansion(mult=c(0,4e-3))),
-        # scale_y_reverse(   expand=expansion(mult=c(4e-3,0)))
-    )) +
-    scale_fill_manual(name="Domain", values=c(red, green, blue)) +
-    scale_color_manual(name="Domain", values=c(red, green, blue)) +
-    geom_rect(ymin=0, alpha=0.3, position="identity", show.legend=FALSE) +
-    geom_step(
-        mapping=aes(color=domain),
-        direction="hv",
-        position="identity",
-        linewidth=.2,
-        show.legend=show.legend
-    ) +
-    theme_minimal() +
-    theme(
-        panel.grid.minor=element_blank(),
-        panel.grid.major.y=element_blank(),
-        panel.border=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank(),
-        axis.title.y=element_blank(),
-        panel.spacing=unit(0, "lines"),
-        legend.position="inside",
-        legend.position.inside=c(0.9, 1.1)
-    ) +
-    guides(color=guide_legend(override.aes=list(linewidth=1))) +
-    # disable clipping since a tiny bit of the plot outline from geom_step is cut by the clipping mask.
-    coord_cartesian(clip="off")
+        scale_x_continuous(name=xname, expand=c(0,0)) +
+        facet_grid(rows=vars(H), scales="free_y") +
+        # from ggh4x
+        facetted_pos_scales(y=list(
+            scale_y_continuous(expand=expansion(mult=c(0,0))),
+            scale_y_reverse(   expand=expansion(mult=c(0,0)))
+            # An alternative to disabling clipping:
+            # scale_y_continuous(expand=expansion(mult=c(0,4e-3))),
+            # scale_y_reverse(   expand=expansion(mult=c(4e-3,0)))
+        )) +
+        scale_fill_manual(name="Domain", values=c(red, green, blue)) +
+        scale_color_manual(name="Domain", values=c(red, green, blue)) +
+        geom_rect(ymin=0, alpha=0.3, position="identity", show.legend=FALSE) +
+        geom_step(
+            mapping=aes(color=domain),
+            direction="hv",
+            position="identity",
+            linewidth=.2,
+            show.legend=show.legend
+        ) +
+        theme_minimal() +
+        theme(
+            panel.grid.minor=element_blank(),
+            panel.grid.major.y=element_blank(),
+            panel.border=element_blank(),
+            axis.text.y=element_blank(),
+            axis.ticks.y=element_blank(),
+            axis.title.y=element_blank(),
+            panel.spacing=unit(0, "lines")
+        ) +
+        guides(color=guide_legend(override.aes=list(linewidth=1))) +
+        # disable clipping since a tiny bit of the plot outline from geom_step is cut by the clipping mask.
+        coord_cartesian(clip="off")
 }
 
 p1 = plot_grid(
-    p.dens,
     p.rich,
     plt_common(F, "nrep",     "Representatives per residue"),
-    plt_common(T, "maxrep",   "Max simplices per residue"),
+    plt_common(F, "maxrep",   "Max simplices per residue"),
     labels="AUTO",
     ncol=1
 )
@@ -248,9 +248,10 @@ p2 = plot_grid(
 )
 p2
 
-# ggsave("domainhist.pdf", p, width=13, height=6)
-# install.packages("svglite")
-# ggsave("domainhist.svg", p, width=13, height=6)
+width = 13/2
+height = 6/4*3
+ggsave("domainhist-rich.pdf", p1, width=width, height=height)
+ggsave("domainhist-rich.svg", p1, width=width, height=height)
 
 
 
