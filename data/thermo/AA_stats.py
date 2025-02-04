@@ -21,7 +21,6 @@ col_thermo = "#E23935"
 dfAA = pd.read_table("./AA_volumes.tsv")
 
 suppl = "../../Results"
-
 df = pd.read_csv(os.path.join(suppl, "thermophiles", "SEQ.csv"))
 df.rename(columns=dict(Seq="AA"), inplace=True)
 df = pd.merge(df, dfAA, on="AA")
@@ -54,9 +53,6 @@ stats = pd.merge(dfAA, stats, on="AA")
 
 stats["Signif"] = stats["fdr_mwu"] < 0.05
 stats["median_diff"] = stats.median_thermo - stats.median_meso
-stats["D_sign"] = stats.D * stats.sign
-
-df_segments = stats[["AA", "loc", "D_sign"]]
 
 fig = go.Figure(layout_yaxis_range=[0,1])
 fig.add_trace(go.Violin(x=df["AA"][df['thermo'] == 0],
@@ -88,27 +84,26 @@ fig.update_layout(
 )
 # slightly wider violins
 fig.update_traces(width=1.18)
-fig.add_trace(go.Scatter(
-    x=df_segments["AA"],
-    y=df_segments["loc"],
-    mode="markers",
-    name="KS location",
-    marker=dict(symbol="x-thin-open", color="black"),
-))
 fig.show()
 fig.write_image("thermo_AA_cent2.pdf")
 
-np.corrcoef(stats.Volume, stats.D_sign)[0,1]
-np.corrcoef(stats.Volume, stats.median_diff)[0,1]
+np.corrcoef(df[df.thermo==0].Volume, df[df.thermo==0].Cent2)[0,1]
+np.corrcoef(df[df.thermo==1].Volume, df[df.thermo==1].Cent2)[0,1]
 
-# dataframe for showing lines, like a semi bar plot scatter plot.
-df_D = stats[["AA", "Volume", "D_sign"]]
-df_D0 = df_D.copy()
-df_DNone = df_D.copy()
-df_D0.D_sign = 0
-df_DNone.D_sign = None
-df_D = pd.concat([df_D, df_D0, df_DNone])
-df_D.sort_values(["AA", "D_sign"], inplace=True)
+# categorical
+df["phile"] = "Mesophile"
+df.loc[df.thermo==1, "phile"] = "Thermophile"
+
+px.scatter(
+    df,
+    x="Volume",
+    y="Cent2",
+    color="phile",
+    color_discrete_map={"Mesophile": col_meso, "Thermophile": col_thermo},
+    opacity=0.1,
+    template="plotly_white",
+    trendline="ols",
+)
 
 # make trendline
 fig_trend = px.scatter(
