@@ -68,19 +68,27 @@ dt.rich.0
 
 dt_maxs = fread("../postgres/domainhistmaxs.csv")
 dt = fread("../postgres/domainhist.csv")[domain!="V"]
+dtm = fread("../postgres/hist_E.csv")
 setnames(dt, "h", "H")
+setnames(dtm, "h", "H")
 # One NA bucket for each species which counts of how many entries had richness=0 since we couldn't do log10(0).
 # we temp use bucket -1 for these.
 # buckets are otherwise in range [1,1001] which corresponds to values in [0, dt_maxs$<NAME>]
 range(dt[!is.na(bucket),bucket])
 dt[!is.na(bucket), bucket:=bucket-1]
 dt[is.na(bucket),bucket:=-1]
+dtm[!is.na(bucket), bucket:=bucket-1]
+dtm[is.na(bucket),bucket:=-1]
 
 # any bucket without values will be missing but should have freq=0, and weighted=0
 buckets = CJ(bucket=0:1000, H=unique(dt$H), domain=unique(dt$domain), meas=unique(dt$meas))
+buckets.m = CJ(bucket=0:1000, H=unique(dtm$H), multicell=unique(dtm$multicell), meas=unique(dtm$meas))
 dt = merge(dt, buckets, by=c("H", "domain", "meas", "bucket"), all=TRUE)[!((meas=="richness") & (H==2))]
+dtm = merge(dtm, buckets.m, by=c("H", "multicell", "meas", "bucket"), all=TRUE)[!((meas=="richness") & (H==2))]
 dt[is.na(dt)] = 0
+dtm[is.na(dtm)] = 0
 dt = dt[order(bucket)]
+dtm = dtm[order(bucket)]
 
 # domain average
 dt.avg = dt[meas=="richness", .(domain, bucket, freq, weighted)]
@@ -102,6 +110,7 @@ dt.0[,frac.prots.discarded:=n.prots.discarded/n.prots.total]
 dt.0[,frac.weighted.discarded:=n.weighted.discarded/n.prots.total]
 dt.0
 dt = dt[bucket!=-1]
+dtm = dtm[bucket!=-1]
 
 # coarsen hists
 w_rich = 7
@@ -110,14 +119,25 @@ w_maxrep = 5
 dt[meas=="richness",xmin:=floor(bucket/w_rich)*w_rich]
 dt[meas=="nrep",    xmin:=floor(bucket/w_nrep)*w_nrep]
 dt[meas=="maxrep",  xmin:=floor(bucket/w_maxrep)*w_maxrep]
+dtm[meas=="richness",xmin:=floor(bucket/w_rich)*w_rich]
+dtm[meas=="nrep",    xmin:=floor(bucket/w_nrep)*w_nrep]
+dtm[meas=="maxrep",  xmin:=floor(bucket/w_maxrep)*w_maxrep]
 dt = dt[, .(freq=sum(freq), weighted=sum(weighted)), by=c("domain", "xmin", "H", "meas")]
+dtm = dtm[, .(freq=sum(freq), weighted=sum(weighted)), by=c("multicell", "xmin", "H", "meas")]
 
 # scale to sum to 1 like a density
 dt[, dens:=freq/sum(freq), by=c("domain", "H", "meas")]
 dt[, densw:=weighted/sum(weighted), by=c("domain", "H", "meas")]
+dtm[, dens:=freq/sum(freq), by=c("multicell", "H", "meas")]
+dtm[, densw:=weighted/sum(weighted), by=c("multicell", "H", "meas")]
+
+# display names
+dtm[multicell=="t", multicell:="Metazoa & Embryophyta"]
+dtm[multicell=="f", multicell:="Remaining eukaryota"]
 
 # preserve a copy
 dt.rich.plt = dt[meas=="richness"]
+dtm.rich.plt = dtm[meas=="richness"]
 
 # scale buckets out of 1000 to actual range of values.
 # First calc 4 scaling ratios and temporarily store to w
@@ -125,11 +145,18 @@ dt[(meas=="nrep")  &(H==1), w:=dt_maxs$nrep1_max    /1000]
 dt[(meas=="nrep")  &(H==2), w:=dt_maxs$nrep2_max    /1000]
 dt[(meas=="maxrep")&(H==1), w:=dt_maxs$maxrep1_max  /1000]
 dt[(meas=="maxrep")&(H==2), w:=dt_maxs$maxrep2_max  /1000]
+dtm[(meas=="nrep")  &(H==1), w:=dt_maxs$nrep1_max    /1000]
+dtm[(meas=="nrep")  &(H==2), w:=dt_maxs$nrep2_max    /1000]
+dtm[(meas=="maxrep")&(H==1), w:=dt_maxs$maxrep1_max  /1000]
+dtm[(meas=="maxrep")&(H==2), w:=dt_maxs$maxrep2_max  /1000]
 # scale xmin
 dt[,xmin:=w*xmin]
+dtm[,xmin:=w*xmin]
 # then actually set the scaled bin width
 dt[meas=="nrep",    w:=w*w_nrep]
 dt[meas=="maxrep",  w:=w*w_maxrep]
+dtm[meas=="nrep",    w:=w*w_nrep]
+dtm[meas=="maxrep",  w:=w*w_maxrep]
 
 # Display names
 dt[domain=="B", domain:="Bacteria"]
@@ -137,24 +164,29 @@ dt[domain=="A", domain:="Archaea"]
 dt[domain=="E", domain:="Eukaryota"]
 
 dt[,H:=as.character(H)]
+dtm[,H:=as.character(H)]
 dt[H=="1", H:="Loops"]
 dt[H=="2", H:="Voids"]
+dtm[H=="1", H:="Loops"]
+dtm[H=="2", H:="Voids"]
 
 # trick to place similar space here as with other subplots that have facets
 dt.rich.plt[,H:=as.character(H)]; dt.rich.plt[,H:=" "]
+dtm.rich.plt[,H:=as.character(H)]; dtm.rich.plt[,H:=" "]
 p.rich = ggplot(dt.rich.plt, aes(
     fill=domain,
     xmin=xmin, xmax=xmin+w_rich, ymax=densw,
     x=xmin, y=densw
 )) +
     scale_x_continuous(
-        name="Topological richness from individual proteins",
+        # name="Topological richness from individual proteins",
+        name="Topological richness",
         expand=c(0,0),
         label=bucket2richness.fmt,
         breaks=richness2bucket(breaks)
     ) +
-    scale_fill_manual( name="Domain", values=c(red, green, blue), labels=c("Archaea", "Bacteria", "Eukayota")) +
-    scale_color_manual(name="Domain", values=c(red, green, blue), labels=c("Archaea", "Bacteria", "Eukayota")) +
+    scale_fill_manual( name="Domain", values=c(red, green, blue), labels=c("Archaea", "Bacteria", "Eukaryota")) +
+    scale_color_manual(name="Domain", values=c(red, green, blue), labels=c("Archaea", "Bacteria", "Eukaryota")) +
     geom_rect(ymin=0, alpha=0.3, position="identity", show.legend=FALSE) +
     geom_step(
         mapping=aes(color=domain),
@@ -188,9 +220,55 @@ p.rich = ggplot(dt.rich.plt, aes(
     facet_grid(rows=vars(H), scales="free_y")
 p.rich
 
-plt_common = function(show.legend, measname, xname) {
-    ggplot(dt[meas==measname], aes(
-        fill=domain,
+p.rich.m = ggplot(dtm.rich.plt, aes(
+    fill=multicell,
+    xmin=xmin, xmax=xmin+w_rich, ymax=densw,
+    x=xmin, y=densw
+)) +
+    scale_x_continuous(
+        name="Topological richness",
+        expand=c(0,0),
+        label=bucket2richness.fmt,
+        breaks=richness2bucket(breaks)
+    ) +
+    scale_fill_manual( name="", values=c(blue, "black")) +
+    scale_color_manual(name="", values=c(blue, "black")) +
+    geom_rect(ymin=0, alpha=0.3, position="identity", show.legend=FALSE) +
+    geom_step(
+        mapping=aes(color=multicell),
+        direction="hv",
+        position="identity",
+        linewidth=.2,
+        show.legend=TRUE
+    ) +
+    theme_minimal() +
+    theme(
+        panel.grid.minor=element_blank(),
+        panel.grid.major.y=element_blank(),
+        panel.border=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.title.y=element_blank(),
+        panel.spacing=unit(0, "lines"),
+        legend.position = "inside",
+        # legend.background = element_rect(colour="white"),
+        legend.justification.top="left",
+        legend.justification.left="top",
+        legend.justification.bottom = "right",
+        legend.justification.inside=c(1, 1),
+        legend.position.inside = c(1.03,1),
+        legend.title=element_text(margin=margin(4,0,4,4)),
+        legend.key.height=unit(10, "pt")
+    ) +
+    guides(color=guide_legend(override.aes=list(linewidth=1))) +
+    # disable clipping since a tiny bit of the plot outline from geom_step is cut by the clipping mask.
+    coord_cartesian(clip="off") +
+    facet_grid(rows=vars(H), scales="free_y")
+p.rich.m
+
+plt_common = function(show.legend, measname, xname, colvar="domain", colname="Domain", DT=dt, palette=c(red, green, blue)) {
+    ggplot(DT[meas==measname], aes(
+        fill=get(colvar),
         xmin=xmin, xmax=xmin+w, ymax=densw,
         x=xmin, y=densw
     )) +
@@ -204,11 +282,11 @@ plt_common = function(show.legend, measname, xname) {
             # scale_y_continuous(expand=expansion(mult=c(0,4e-3))),
             # scale_y_reverse(   expand=expansion(mult=c(4e-3,0)))
         )) +
-        scale_fill_manual(name="Domain", values=c(red, green, blue)) +
-        scale_color_manual(name="Domain", values=c(red, green, blue)) +
+        scale_fill_manual(name=colname, values=palette) +
+        scale_color_manual(name=colname, values=palette) +
         geom_rect(ymin=0, alpha=0.3, position="identity", show.legend=FALSE) +
         geom_step(
-            mapping=aes(color=domain),
+            mapping=aes(color=get(colvar)),
             direction="hv",
             position="identity",
             linewidth=.2,
@@ -238,22 +316,28 @@ p1 = plot_grid(
 )
 p1
 
-p2 = plot_grid(
-    p.dens,
-    p.rich,
-    plt_common(F, "nrep",     "Representatives per residue"),
-    plt_common(T, "maxrep",   "Max simplices per residue"),
+# p2 = plot_grid(
+#     p.dens,
+#     p.rich,
+#     plt_common(F, "nrep",  "Representatives per residue"),
+#     plt_common(T, "maxrep","Max simplices per residue"),
+#     labels="AUTO",
+#     ncol=1
+# )
+# p2
+
+p3 = plot_grid(
+    p.rich.m,
+    plt_common(F, "nrep",   "Representatives per residue", colvar="multicell", colname="Multicellular", DT=dtm, palette=c(blue, "black")),
+    plt_common(F, "maxrep", "Max simplices per residue", colvar="multicell", colname="Multicellular", DT=dtm, palette=c(blue, "black")),
     labels="AUTO",
     ncol=1
 )
-p2
+p3
 
 width = 13/2
 height = 6/4*3
-ggsave("domainhist-rich.pdf", p1, width=width, height=height)
-ggsave("domainhist-rich.svg", p1, width=width, height=height)
-
-
-
-
+# ggsave("domainhist-rich.pdf", p1, width=width, height=height)
+# ggsave("domainhist-rich.svg", p1, width=width, height=height)
+ggsave("multicell-hists.pdf", p3, width=width, height=height)
 
