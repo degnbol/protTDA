@@ -231,8 +231,8 @@ p.rich.m = ggplot(dtm.rich.plt, aes(
         label=bucket2richness.fmt,
         breaks=richness2bucket(breaks)
     ) +
-    scale_fill_manual( name="", values=c(blue, "black")) +
-    scale_color_manual(name="", values=c(blue, "black")) +
+    scale_fill_manual( name="", values=c("black", blue)) +
+    scale_color_manual(name="", values=c("black", blue)) +
     geom_rect(ymin=0, alpha=0.3, position="identity", show.legend=FALSE) +
     geom_step(
         mapping=aes(color=multicell),
@@ -328,8 +328,8 @@ p1
 
 p3 = plot_grid(
     p.rich.m,
-    plt_common(F, "nrep",   "Representatives per residue", colvar="multicell", colname="Multicellular", DT=dtm, palette=c(blue, "black")),
-    plt_common(F, "maxrep", "Max simplices per residue", colvar="multicell", colname="Multicellular", DT=dtm, palette=c(blue, "black")),
+    plt_common(F, "nrep",   "Representatives per residue", colvar="multicell", colname="Multicellular", DT=dtm, palette=c("black", blue)),
+    plt_common(F, "maxrep", "Max simplices per residue", colvar="multicell", colname="Multicellular", DT=dtm, palette=c("black", blue)),
     labels="AUTO",
     ncol=1
 )
