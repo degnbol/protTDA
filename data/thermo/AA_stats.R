@@ -22,6 +22,25 @@ df = df[df.AA,on="AA"]
 df[thermo==0, phile:="Mesophile"]
 df[thermo==1, phile:="Thermophile"]
 
+# simple correlations
+cor.test(df[thermo==0,Cent2], df[thermo==0,Volume])
+cor.test(df[thermo==1,Cent2], df[thermo==1,Volume])
+# two trend lines for the plot
+model.meso = lm(Cent2 ~ Volume, data=df[thermo==0])
+model.thermo = lm(Cent2 ~ Volume, data=df[thermo==1])
+summary(model.meso)
+summary(model.thermo)
+confint(model.meso)["Volume",]
+confint(model.thermo)["Volume",]
+summary(model.meso)$r.squared
+summary(model.thermo)$r.squared
+# We want to test whether there are compensating effects from AA volume distributions for void sizes in meso vs thermo.
+median(df[thermo==0,Volume])
+median(df[thermo==1,Volume])
+mean(df[thermo==0,Volume])
+mean(df[thermo==1,Volume])
+wilcox.test(df[thermo==0,Volume], df[thermo==1,Volume])
+
 p1 = ggplot() +
     geom_density_ridges(data=df[thermo==0], mapping=aes(y=Volume, group=Volume, x=Cent2), panel_scaling=FALSE, scale=-0.5, alpha=0.2, color=col_meso, fill=col_meso) +
     geom_density_ridges(data=df[thermo==1], mapping=aes(y=Volume, group=Volume, x=Cent2), panel_scaling=FALSE, scale=+0.5, alpha=0.2, color=col_thermo, fill=col_thermo) +
@@ -30,11 +49,6 @@ p1 = ggplot() +
     theme_classic() +
     coord_flip()
 p1
-
-cor(df[thermo==0,Cent2], df[thermo==0,Volume])
-cor(df[thermo==1,Cent2], df[thermo==1,Volume])
-summary(lm(Cent2 ~ Volume, data=df[thermo==0]))$r.squared
-summary(lm(Cent2 ~ Volume, data=df[thermo==1]))$r.squared
 
 p2 = ggplot() +
     geom_smooth(data=df, mapping=aes(x=Volume, y=Cent2, color=phile), method="lm", se=TRUE) +

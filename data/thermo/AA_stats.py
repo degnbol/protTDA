@@ -87,9 +87,6 @@ fig.update_traces(width=1.18)
 fig.show()
 fig.write_image("thermo_AA_cent2.pdf")
 
-np.corrcoef(df[df.thermo==0].Volume, df[df.thermo==0].Cent2)[0,1]
-np.corrcoef(df[df.thermo==1].Volume, df[df.thermo==1].Cent2)[0,1]
-
 # categorical
 df["phile"] = "Mesophile"
 df.loc[df.thermo==1, "phile"] = "Thermophile"
