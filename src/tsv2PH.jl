@@ -1,7 +1,7 @@
 #!/usr/bin/env julia
 """
 tsv2PH.jl INFILES... OUTDIR/
-Reads uncompressed TSVs with one curve per file and assumed header containing "x", "y", "z".
+Reads (optionally compressed) TSVs with one curve per file and assumed header containing "x", "y", "z".
 Writes HDF5s with the same name to OUTDIR/.
 Does not overwrite.
 PH calculated with ripserer.jl using Alpha complexes in dimension 1 and 2.
