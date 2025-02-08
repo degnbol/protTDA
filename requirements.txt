@@ -2,3 +2,7 @@ numpy
 pandas
 networkx
 python-louvain
+leidenalg
+h5py
+hdf5plugin
+scipy

@@ -10,3 +10,10 @@ git submodule update --init --recursive
 
 # get python function gitpath.root()
 # pip install git+https://github.com/maxnoe/python-gitpath
+
+if `which conda &> /dev/null`; then
+    echo "Installing and activating conda env protTDA with required packages"
+    conda create -n protTDA --file requirements.txt && conda activate protTDA
+fi
+
+
