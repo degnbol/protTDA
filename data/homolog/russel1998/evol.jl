@@ -114,7 +114,7 @@ scatter(x=df2.bitscore, y=df2.cent1_cor, mode="markers") |> plot
 scatter(x=df2.bitscore, y=df2.cent2_cor, mode="markers") |> plot
 
 bitscore_cent2_cor = cor(df2.bitscore, df2.cent2_cor)
-p = plot(
+fig = plot(
     scatter(x=df2.bitscore, y=df2.cent2_cor, mode="markers"),
     Layout(
         xaxis=attr(type="log", title="bitscore"),
@@ -122,7 +122,7 @@ p = plot(
         annotations=[attr(font=attr(size=20), x=2.5, y=0., text="cor = $(round(bitscore_cent2_cor, digits=3))", showarrow=false)],
     )
 )
-savefig(p, "bitscore_cent2_cor.png", scale=2)
+savefig(fig, "bitscore_cent2_cor.png", scale=2)
 
 if !isfile("msa.fa")
     open("to_msa.fa", "w") do io
@@ -210,15 +210,28 @@ utri = triu!(trues(N, N), 1)
 @chain cor(identFrac[utri], cent2_cors[utri]) println(fh, "identFrac\tcent2_cor\t", _)
 scatter(x=identFrac[utri], y=cent1_cors[utri], mode="markers") |> plot
 
+same_fold = df2.fold .== hcat(df2.fold...)
 identFrac_cent2_cor = cor(identFrac[utri], cent2_cors[utri])
+
 fig = plot(
-    scatter(
-        x=100*identFrac[utri],
-        y=cent2_cors[utri],
-        mode="markers",
-        marker_color="black",
-    ),
+    [
+        scatter(
+            name="Different",
+            x=100*identFrac[utri][.!same_fold[utri]],
+            y=cent2_cors[utri][.!same_fold[utri]],
+            mode="markers",
+            marker_color= "#99999970",
+        ),
+        scatter(
+            name="Same",
+            x=100*identFrac[utri][same_fold[utri]],
+            y=cent2_cors[utri][same_fold[utri]],
+            mode="markers",
+            marker_color="green",
+        )
+    ],
     Layout(
+        legend_title_text="Protein fold",
         xaxis=attr(
             type="log",
             title="Sequence identity [%]",
@@ -244,7 +257,8 @@ fig = plot(
 )
 add_hline!(fig, 1)
 add_vline!(fig, 100)
-savefig(fig, "identFrac_cent2_cor.pdf", width=500, height=500)
+
+savefig(fig, "identFrac_cent2_cor.pdf", width=450, height=450)
 
 
 @chain cor(fisherrao[utri], identFrac[utri]) println(fh, "fisherrao\tidentFrac\t", _)
