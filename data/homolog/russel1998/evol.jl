@@ -211,15 +211,40 @@ utri = triu!(trues(N, N), 1)
 scatter(x=identFrac[utri], y=cent1_cors[utri], mode="markers") |> plot
 
 identFrac_cent2_cor = cor(identFrac[utri], cent2_cors[utri])
-p = plot(
-    scatter(x=identFrac[utri], y=cent2_cors[utri], mode="markers"),
+fig = plot(
+    scatter(
+        x=100*identFrac[utri],
+        y=cent2_cors[utri],
+        mode="markers",
+        marker_color="black",
+    ),
     Layout(
-        xaxis=attr(type="log", title="Identity [%]"),
-        yaxis_title="Cent2 cor",
-        annotations=[attr(font=attr(size=20), x=.0, y=0., text="cor = $(round(identFrac_cent2_cor, digits=3))", showarrow=false)],
+        xaxis=attr(
+            type="log",
+            title="Sequence identity [%]",
+            tickmode="array",
+            tickvals=[5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+            tickangle=90,
+            range=log10.([4, 100]),
+        ),
+        yaxis=attr(
+            title="TIF dim 2 correlation",
+            range=[-.3, 1],
+        ),
+        annotations=[attr(
+            font=attr(size=12),
+            x=log10(50),
+            y=.1,
+            text="PCC = $(round(identFrac_cent2_cor, digits=3))",
+            showarrow=false
+        )],
+        template="simple_white",
+        font_family="Fira Sans",
     )
 )
-savefig(p, "identFrac_cent2_cor.png", scale=2)
+add_hline!(fig, 1)
+add_vline!(fig, 100)
+savefig(fig, "identFrac_cent2_cor.pdf", width=500, height=500)
 
 
 @chain cor(fisherrao[utri], identFrac[utri]) println(fh, "fisherrao\tidentFrac\t", _)
