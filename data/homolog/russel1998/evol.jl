@@ -187,31 +187,45 @@ fisherrao = readdlm("fisherrao.ssv", ' ')
 df2[!, "fisherrao"] .= [fisherrao[i,j] for (i,j) in zip(1:N, df2.hit)]
 
 
-R"install.packages('elasdics')"
+R"pacman::p_load(elasdics)"
+R"pacman::p_load(dtw)"
 
-elastic_dists = Float64[]
-for (i, hit) in enumerate(df2.hit)
-    a = cent2[i]
-    b = cent2[hit]
+function get_elastic_dist(a, b)
     @rput a
     @rput b
     R"""
-    library("elasdics")
     A = data.frame(t=0:(length(a)-1) / (length(a)-1), y=a)
     B = data.frame(t=0:(length(b)-1) / (length(b)-1), y=b)
     elastic_dist = align_curves(A, B)$elastic_dist
     """
-    push!(elastic_dists, @rget(elastic_dist))
+    @rget(elastic_dist)
+end
+
+function get_dtw_distance(a, b)
+    @rput a
+    @rput b
+    R"dtw_distance = dtw(a, b)$distance"
+    @rget(dtw_distance)
+end
+
+elastic_dists = Float64[]
+for (i, hit) in enumerate(df2.hit)
+    push!(elastic_dists, get_elastic_dist(cent2[i], cent2[hit]))
 end
 df2[!, "elastic_dist"] .= elastic_dists
 
+
+dtw_dists1 = [get_dtw_distance(i, j) for i in cent1, j in cent1]
+dtw_dists2 = [get_dtw_distance(i, j) for i in cent2, j in cent2]
+
 utri = triu!(trues(N, N), 1)
+
 @chain cor(identFrac[utri], cent1_cors[utri]) println(fh, "identFrac\tcent1_cor\t", _)
 @chain cor(identFrac[utri], cent2_cors[utri]) println(fh, "identFrac\tcent2_cor\t", _)
-scatter(x=identFrac[utri], y=cent1_cors[utri], mode="markers") |> plot
 
 same_fold = df2.fold .== hcat(df2.fold...)
 identFrac_cent2_cor = cor(identFrac[utri], cent2_cors[utri])
+identFrac_invdtw_cor = cor(identFrac[utri], 1. ./ dtw_dists2[utri])
 
 fig = plot(
     [
@@ -228,10 +242,10 @@ fig = plot(
             y=cent2_cors[utri][same_fold[utri]],
             mode="markers",
             marker_color="green",
-        )
+        ),
     ],
     Layout(
-        legend_title_text="Protein fold",
+        legend_title_text="   Protein fold",
         xaxis=attr(
             type="log",
             title="Sequence identity [%]",
@@ -258,7 +272,51 @@ fig = plot(
 add_hline!(fig, 1)
 add_vline!(fig, 100)
 
-savefig(fig, "identFrac_cent2_cor.pdf", width=450, height=450)
+# savefig(fig, "identFrac_cent2_cor.pdf", width=550, height=450)
+
+fig = plot(
+    [
+        scatter(
+            name="Different",
+            x=100*identFrac[utri][.!same_fold[utri]],
+            y=1. ./ dtw_dists2[utri][.!same_fold[utri]],
+            mode="markers",
+            marker_color= "#99999970",
+        ),
+        scatter(
+            name="Same",
+            x=100*identFrac[utri][same_fold[utri]],
+            y=1. ./ dtw_dists2[utri][same_fold[utri]],
+            mode="markers",
+            marker_color="green",
+        ),
+    ],
+    Layout(
+        legend_title_text="   Protein fold",
+        xaxis=attr(
+            title="Sequence identity [%]",
+            range=[0, 100.1],
+        ),
+        yaxis=attr(
+            title="TIF dim 2 dynamic time warp similarity",
+            range=[0, nothing],
+        ),
+        annotations=[attr(
+            font=attr(size=12),
+            x=60,
+            y=2,
+            text="PCC = $(round(identFrac_invdtw_cor, digits=3))",
+            showarrow=false
+        )],
+        template="simple_white",
+        font_family="Fira Sans",
+    )
+)
+add_hline!(fig,   0, line_width=0.75)
+add_vline!(fig,   0, line_width=0.75)
+add_vline!(fig, 100, line_width=0.75)
+
+savefig(fig, "identity_dtw.pdf", width=550, height=450)
 
 
 @chain cor(fisherrao[utri], identFrac[utri]) println(fh, "fisherrao\tidentFrac\t", _)
@@ -288,7 +346,8 @@ scatter(x=df2.bitscore, y=df2.RMSD, mode="markers") |> plot
 
 close(fh)
 
-
+cent1
+cent2
 
 # An example to look at the potential for aligning using cent or other topol
 
@@ -306,17 +365,20 @@ qcent2 = cent2[i][row.qrange][valid[qvalid]]
 hcent1 = cent1[row.hit][row.hrange][valid[hvalid]]
 hcent2 = cent2[row.hit][row.hrange][valid[hvalid]]
 
-p = plot([
+fig1 = plot([
     scatter(y=a, name=df2.pdb[i]),
     scatter(y=b, name=df2.pdb[j])
-])
-savefig(p, "cent2_unaligned.png", scale=2)
-
-p = plot([
+], Layout(template="simple_white"));
+fig2 = plot([
     scatter(y=qcent2, name=df2.pdb[i]),
     scatter(y=hcent2, name=df2.pdb[j])
-])
-savefig(p, "cent2_aligned.png", scale=2)
+], Layout(template="simple_white"));
+fig = [fig1; fig2]
+relayout!(fig, template="simple_white")
+
+savefig(fig, "cent2_unaligned.pdf")
+
+savefig(fig, "cent2_aligned.pdf")
 
 ecdf(df2.bitscore)(df2.bitscore[i])
 ecdf(df2.RMSD)(df2.RMSD[i])
@@ -326,5 +388,13 @@ ecdf(df2.elastic_dist)(df2.elastic_dist[i])
 
 # so the curves look super similar after alignment, could we align them without 
 # seq?
+
+using FrechetDist
+
+
+frechet_c_approx(a, b)
+writedlm("a.tsv", a)
+writedlm("b.tsv", b)
+
 
 
