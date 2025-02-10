@@ -110,8 +110,8 @@ fh = open("evol.jl.tsv", "w")
 @chain cor(df2.bitscore, df2.cent2_cor) println(fh, "bitscore\tcent2_cor\t", _)
 @chain cor(log.(df2.bitscore), df2.cent2_cor)  println(fh, "log(bitscore)\tcent2_cor\t", _)
 # high correlation between bitscore (proxy for evol dist) and cents.
-scatter(x=df2.bitscore, y=df2.cent1_cor, mode="markers") |> plot
-scatter(x=df2.bitscore, y=df2.cent2_cor, mode="markers") |> plot
+scatter(x=df2.bitscore, y=df2.cent1_cor, mode="markers") |> plot;
+scatter(x=df2.bitscore, y=df2.cent2_cor, mode="markers") |> plot;
 
 bitscore_cent2_cor = cor(df2.bitscore, df2.cent2_cor)
 fig = plot(
@@ -121,8 +121,8 @@ fig = plot(
         yaxis_title="Cent2 cor",
         annotations=[attr(font=attr(size=20), x=2.5, y=0., text="cor = $(round(bitscore_cent2_cor, digits=3))", showarrow=false)],
     )
-)
-savefig(fig, "bitscore_cent2_cor.png", scale=2)
+);
+# savefig(fig, "bitscore_cent2_cor.pdf")
 
 if !isfile("msa.fa")
     open("to_msa.fa", "w") do io
@@ -204,28 +204,32 @@ end
 function get_dtw_distance(a, b)
     @rput a
     @rput b
-    R"dtw_distance = dtw(a, b)$distance"
+    R"""
+    dtw_distance = tryCatch(
+        {dtw(a, b, distance.only=T, step.pattern=typeIb)$distance},
+        error=function(cond){Inf}
+    )
+    """
     @rget(dtw_distance)
 end
 
-elastic_dists = Float64[]
-for (i, hit) in enumerate(df2.hit)
-    push!(elastic_dists, get_elastic_dist(cent2[i], cent2[hit]))
-end
-df2[!, "elastic_dist"] .= elastic_dists
-
+# elastic_dists = Float64[]
+# for (i, hit) in enumerate(df2.hit)
+#     push!(elastic_dists, get_elastic_dist(cent2[i], cent2[hit]))
+# end
+# df2[!, "elastic_dist"] .= elastic_dists
 
 dtw_dists1 = [get_dtw_distance(i, j) for i in cent1, j in cent1]
 dtw_dists2 = [get_dtw_distance(i, j) for i in cent2, j in cent2]
 
-utri = triu!(trues(N, N), 1)
+utri = triu!(trues(N, N), 1);
 
 @chain cor(identFrac[utri], cent1_cors[utri]) println(fh, "identFrac\tcent1_cor\t", _)
 @chain cor(identFrac[utri], cent2_cors[utri]) println(fh, "identFrac\tcent2_cor\t", _)
-
-same_fold = df2.fold .== hcat(df2.fold...)
 identFrac_cent2_cor = cor(identFrac[utri], cent2_cors[utri])
 identFrac_invdtw_cor = cor(identFrac[utri], 1. ./ dtw_dists2[utri])
+
+same_fold = df2.fold .== hcat(df2.fold...)
 
 fig = plot(
     [
@@ -346,9 +350,6 @@ scatter(x=df2.bitscore, y=df2.RMSD, mode="markers") |> plot
 
 close(fh)
 
-cent1
-cent2
-
 # An example to look at the potential for aligning using cent or other topol
 
 i = (df2.pdb .== df2.pdb[end-3]) |> findall |> only
@@ -376,25 +377,12 @@ fig2 = plot([
 fig = [fig1; fig2]
 relayout!(fig, template="simple_white")
 
-savefig(fig, "cent2_unaligned.pdf")
-
-savefig(fig, "cent2_aligned.pdf")
-
 ecdf(df2.bitscore)(df2.bitscore[i])
 ecdf(df2.RMSD)(df2.RMSD[i])
 ecdf(df2.cent2_cor)(df2.cent2_cor[i])
 ecdf(df2.fisherrao)(df2.fisherrao[i])
 ecdf(df2.elastic_dist)(df2.elastic_dist[i])
 
-# so the curves look super similar after alignment, could we align them without 
-# seq?
-
-using FrechetDist
-
-
-frechet_c_approx(a, b)
-writedlm("a.tsv", a)
-writedlm("b.tsv", b)
 
 
 
