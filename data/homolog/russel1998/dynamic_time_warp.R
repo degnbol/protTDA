@@ -33,12 +33,12 @@ for(filename in list.files("PH")) {
     }
 }
 
-a = sample(length(cents), 1)
-b = sample(length(cents), 1)
+# a = sample(length(cents), 1)
+# b = sample(length(cents), 1)
 # a = 4
 # b = 10
-# a = 9
-# b = 8
+a = 9
+b = 8
 name.a = names(cents)[a]
 name.b = names(cents)[b]
 cent.a = cents[[name.a]]
@@ -87,8 +87,8 @@ df.unaligned$aligned = "Unaligned"
 df.aligned[Protein=="msa.cent.a", Protein:=name.a]
 df.aligned[Protein=="msa.cent.b", Protein:=name.b]
 
-# dtw.alignment = dtw(cent.a, cent.b, keep=T)
-dtw.alignment = dtw(cent.a, cent.b, keep=T, step.pattern=symmetric1)
+dtw.alignment = dtw(cent.a, cent.b, keep=T)
+# dtw.alignment = dtw(cent.a, cent.b, keep=T, step.pattern=symmetric1)
 # dtw.alignment = dtw(cent.a, cent.b, keep=T, step.pattern=symmetricP2)
 dtw.alignment.Ib = dtw(cent.a, cent.b, keep=T, step.pattern=typeIb)
 dtw.a = data.table(Protein=name.a, TIF2=cent.a[dtw.alignment$index1])
