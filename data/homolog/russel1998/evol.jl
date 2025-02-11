@@ -303,7 +303,7 @@ fig = plot(
         ),
         yaxis=attr(
             title="TIF dim 2 dynamic time warp similarity",
-            range=[0, nothing],
+            range=[0, maximum(1. ./ dtw_dists2[utri]) + 1],
         ),
         annotations=[attr(
             font=attr(size=12),
