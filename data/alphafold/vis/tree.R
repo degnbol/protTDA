@@ -1,15 +1,23 @@
 #!/usr/bin/env Rscript
-suppressPackageStartupMessages(library(ggplot2))
-library(geomtextpath)
-suppressPackageStartupMessages(library(data.table))
-library(packcircles)
-library(graphics)
-# library(ggchromatic)
-library(ggnewscale)
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    data.table,
+    ggplot2,
+    geomtextpath,
+    packcircles,
+    graphics,
+    # ggchromatic,
+    ggnewscale
+)
 
 green = "#5fb12a"
 blue  = "#267592"
 red   = "#e23a34"
+
+# map values in x to values in range [0,1], 
+# where the smallest value maps to 0 and the largest to 1, 
+# and remaining values are linearly interpolated.
+toUnit = function(x) { (x - min(x)) / (max(x) - min(x)) }
 
 # circle packing that centers.
 circlePack = function(vals, sizetype) {
@@ -240,30 +248,29 @@ dtv = rbind(getVerts(dtbg[100 <= r]     , 160),
 cat(nrow(dtv), '\n')
 
 # color
-hst = function(c) {
-    xlims = quantile(dtbg[, eval(c)], probs=c(0.05, 1-0.05), na.rm=TRUE)
-    hist(dtbg[xlims[1] < eval(c) & eval(c) < xlims[2], eval(c)], breaks=200, xlim=xlims, main=c)
-}
+# hst = function(c) {
+#     xlims = quantile(dtbg[, eval(c)], probs=c(0.05, 1-0.05), na.rm=TRUE)
+#     hist(dtbg[xlims[1] < eval(c) & eval(c) < xlims[2], eval(c)], breaks=200, xlim=xlims, main=c)
+# }
 # hst(quote(avg_maxrep1_pp)) # on avg maxrep is essentially always the same
 # hst(quote(avg_maxpers1_pp)) # decent. same for 2 and their sum.
 # hst(quote(avg_maxpers1_pp/avg_n_pp)) # even better distribution
 # hst(quote(log(avg_maxpers1_pp/avg_n_pp)))
 # seems similar with and without length norm
 # hst(quote(avg_nrep1_t4_pp/avg_n_pp))
-
-# TODO: try avg_pers1_t1_pp and other thresholds
-dtbg[, s:=avg_nrep1_t10_pp/avg_n_pp]
-# dtbg[, s:=avg_nrep1_t1_pp/avg_n_pp]
+dtbg[, richness:=avg_nrep1_t10_pp/avg_n_pp]
+dtbg[, s:=richness]
 s.range       = dtbg[(s > -Inf) & !rank%in%c("protein", "zoom"), quantile(s, probs=c(0.0, .95))]
 s.rangeSingle = dtbg[(s > -Inf) &  rank%in%c("protein", "zoom"), quantile(s, probs=c(0.0, .95))]
-# s.range[1] should be 0
+# map to saturation in range [0,1]
 dtbg[(s > -Inf) & !rank%in%c("protein", "zoom"), s:=(s-s.range[1]) / (s.range[2]-s.range[1])]
 dtbg[(s > -Inf) &  rank%in%c("protein", "zoom"), s:=(s-s.rangeSingle[1]) / (s.rangeSingle[2]-s.rangeSingle[1])]
-dtbg[s < 0, s:=0]
 dtbg[s > 1, s:=1]
-dtbg[domain=="A", col:=hsv(  2/360, s, 1)]
-dtbg[domain=="B", col:=hsv( 96/360, s, 1)]
-dtbg[domain=="E", col:=hsv(196/360, s, 1)]
+
+dtbg[s==-Inf,col:=gray(0.75)]
+dtbg[s>-Inf & domain=="A", col:=hsv(  2/360, s, 1)]
+dtbg[s>-Inf & domain=="B", col:=hsv( 96/360, s, 1)]
+dtbg[s>-Inf & domain=="E", col:=hsv(196/360, s, 1)]
 # dtbg[domain=="V", col:=hsv(309/360, s, 1)]
 
 # add meta data to polygons
@@ -347,7 +354,7 @@ dtp.species[, c("id", "x", "y", "dx", "dy") := .(paste(id, "duplicate"), x+dx, y
 plt = ggplot(mapping=aes(x=x, y=y))
 # draw domain outline
 plt=plt+ geom_polygon(data=dtp[rank=="domain"], mapping=aes(fill=col, group=id))
-for (rnk in lRanks) plt=plt+geom_polygon(data=dtp[rank==rnk], mapping=aes(fill=col, group=id, linewidth=rank, color=stroke))
+for (rnk in lRanks[1:(length(lRanks)-1)]) plt=plt+geom_polygon(data=dtp[rank==rnk], mapping=aes(fill=col, group=id, linewidth=rank, color=stroke))
 plt=plt+geom_polygon(data=zoom.rect, fill=blue, alpha=0.3)
 # if we use zoom shadow, then we need to draw human on top
 plt=plt+geom_polygon(data=dtp[id%in%c(dths$id, "zoom")], mapping=aes(fill=col, group=id, linewidth=rank, color=stroke))
@@ -358,7 +365,7 @@ plt=plt+geom_textcurve(data=dt.lab, mapping=aes(label=label, x=x1, y=y1, xend=x2
 plt=plt+
     annotate("text", label="Bacteria",  x=-28500, y= 19500, size=6, color=green, hjust=1) +
     annotate("text", label="Eukaryota", x=-25500, y=-23000, size=6, color=blue,  hjust=1) +
-    annotate("text", label="Archaea",   x=  5000, y= 16000, size=6, color=red,   hjust=0) +
+    annotate("text", label="Archaea",   x=  5000, y= 17000, size=6, color=red,   hjust=0) +
     scale_fill_identity() +
     scale_linewidth_manual(values=c(0., .3, .2, .1, .05, .025, 0.01, 0.0025, 0.00125, 0.2), breaks=c(lRanks, "protein", "zoom"), guide="none") +
     scale_color_gradient(low="black", high="yellow", guide="none") +
@@ -369,7 +376,7 @@ plt=plt+
     geom_text(data=dt.species, mapping=aes(x=xend, y=yend, label=label, color=domain, vjust=vjust, hjust=hjust), size=2.8, lineheight=.75, fontface="italic") +
     scale_color_manual(values=c(green, blue, red), guide="none") +
     coord_fixed() +theme_void()
-# plt
+plt
 
 ggsave("pack.png", plt, width=210, height=297, units="mm", dpi=1000)
 
@@ -414,4 +421,31 @@ ggsave("legend.png", plt, width=210, height=297, units="mm", dpi=1000)
 # post analysis.
 # high color with > 10k proteins (around the amount for yeast)
 dtbg[!is.na(avg_nrep1_t1_pp)][order(-avg_nrep1_t1_pp), .(label, id, avg_nrep1_t1_pp, proteins_pp, rank, parent)][(avg_nrep1_t1_pp > 0) & (proteins_pp > 10000)][1:100]
+
+
+# richness scores for annotating the plot
+rich.fmt = function(x) { sub("-0", "-", sprintf("%2.1e", x)) }
+
+richLab = function(label) {
+    for(lab in label) {
+        cat(lab, "\t", rich.fmt(dtbg[label==lab, unique(richness)]), "\n")
+    }
+}
+
+# colorbar interval
+rich.fmt(dtbg[(s > -Inf) & !rank%in%c("protein", "zoom"), quantile(richness, probs=c(0., .95))])
+
+richLab(c(
+    "Bacteria", "Archaea", "Eukaryota",
+    "Euryarchaeota",
+    "Bacteroidota",
+    "Actinomycetota",
+    "Bacillota",
+    "Pseudomonadota",
+    "Viridiplantae",
+    "Metazoa",
+    "Fungi",
+    "Homo sapiens"
+))
+richLab(soi$label)
 
