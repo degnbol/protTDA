@@ -67,18 +67,18 @@ MBs = c("diskReadMB", "diskWriteMB")
 scl = ceiling(max(df.melt[variable%in%MBs, value])) / 100
 df.melt[variable%in%MBs, value:=value/scl]
 
-df.melt[variable=="memoryPercent", variable:="Memory [%]"]
-df.melt[variable=="cpuPercent", variable:="CPU [%]"]
-df.melt[variable=="diskReadMB", variable:="Read [MB/s]"]
-df.melt[variable=="diskWriteMB", variable:="Write [MB/s]"]
+df.melt[variable=="memoryPercent", variable:="Memory"]
+df.melt[variable=="cpuPercent", variable:="CPU"]
+df.melt[variable=="diskReadMB", variable:="Read"]
+df.melt[variable=="diskWriteMB", variable:="Write"]
 
-ggplot(df.melt, aes(x=timestamp, y=value, color=variable, linewidth=variable)) +
+ggplot(df.melt, aes(x=timestamp, y=value, color=variable, linetype=variable)) +
     geom_line() +
     scale_y_continuous(name="%", limits=c(0,100), expand=c(0,0),
                        sec.axis=sec_axis(~.*scl, name="MB/s")) +
     xlab("Timestamp") +
-    scale_linewidth_manual(values=c(2, 2, 1, 1)) +
-    scale_color_discrete(name="Measurement") +
+    scale_linetype_manual(values=c("solid", "solid", "dashed", "dashed"), guide="none") +
+    scale_color_manual(name="Measurement", values=c("maroon", "blue", "black", "darkgray")) +
     theme_classic()
 
 ggsave("AF_PH_run.pdf", width=6, height=2)
