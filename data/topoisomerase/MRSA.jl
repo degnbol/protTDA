@@ -1,20 +1,18 @@
 #!/usr/bin/env julia
+using GZip
 using DataFrames, CSV
 using HDF5, H5Zzstd
 using PlotlyJS
 using Colors, ColorSchemes
 using Printf
 using BioAlignments, BioSequences
-
 using Graphs
 using SimpleWeightedGraphs
-
-using PyCall
-
-ROOT = `git root` |> readchomp
-include("$ROOT/src/util/plotly.jl")
 using Chain
 using StatsBase: countmap
+using JSON3
+ROOT = `git root` |> readchomp
+include("$ROOT/src/util/plotly.jl")
 
 function Graphs.SimpleGraph(edges::Matrix{Int32})
     edges |> eachrow .|> Tuple .|> Graphs.SimpleEdge |> SimpleGraph
@@ -29,62 +27,12 @@ function Graphs.cycle_basis(edges::Matrix{Int32})::Vector{Vector{Int32}}
     cycles
 end
 
-using SparseArrays
-
-"""
-B is sparse integer matrix with dim (#nodes, #hyperedges).
-- hyperedges: each hyperedge is a set of node indices
-- nNodes: optionally specify the total number of nodes
-"""
-function hyperedges2B(hyperedges::Vector{Set{Int}}, nNodes::Union{Int,Nothing}=nothing)
-    Is = [n for     h  in           hyperedges  for n in h] 
-    Js = [j for (j, h) in enumerate(hyperedges) for n in h]
-    if nNodes === nothing
-        sparse(Is, Js, 1)
-    else
-        sparse(Is, Js, 1, nNodes, length(hyperedges))
-    end
-end
-
-function reps2hyperedges(reps::Matrix{Int32})
-    hyperedges = Set{Int}[]
-    indices = reps[:,1]
-    _reps = Int.(reps[:,2:end])
-    for i in 1:maximum(indices)
-        push!(hyperedges, Set(_reps[indices .== i, :]))
-    end
-    hyperedges
-end
-
-function CliqueExpansion(mat)
-    N = size(mat, 1)
-    ex = zeros(N, N)
-    for he in eachcol(mat)
-        Is = findall(he .!= 0)
-        for i in Is
-            for j in Is
-                if i != j
-                    ex[i,j] = (he[i] + he[j]) / 2
-                end
-            end
-        end
-    end
-    ex
-end
-
-@pyinclude "/Users/cdmadsen/Documents/hyperTDA/src/leiden.py"
-
-
-function leiden(reps, bars, n)
-    B = hyperedges2B(reps2hyperedges(reps), n)
-    persistences = bars[:,end]
-    H = B .* persistences'
-    H |> CliqueExpansion |> py"leiden"
-end
-
 ## READ
 
 df = CSV.read("MRSA-AF.tsv", DataFrame; delim='\t')
+leidens = GZip.open("leidens.json.gz", "rb") do fp
+    JSON3.read(fp)
+end;
 
 # read AF HDF5s
 Cas_AF = Matrix{Float32}[]
@@ -181,6 +129,7 @@ append!(df, newrows)
 seqs = [join.(zip(resis[i], df.sequence[i])) for i in 1:nrow(df)]
 
 titles = df.acc .* '-' .* [fill("AF", nrow(df) - length(pdbs)); pdbs]
+title2leiden = x -> replace(join(reverse(split(x, '-')), '-'), "AF-"=>"")
 
 top1 = (1:nrow(df))[startswith.(df.name, "TOP1")]
 top3 = (1:nrow(df))[startswith.(df.name, "TOP3")]
@@ -190,18 +139,21 @@ top3 = (1:nrow(df))[startswith.(df.name, "TOP3")]
 # persistence diagrams
 function scat(i)
     scatter(;
-            x=bars1[i][:, 1],
-            y=vec(sum(bars1[i], dims=2)),
+            x=bars2[i][:, 1],
+            y=vec(sum(bars2[i], dims=2)),
             mode="markers",
             name=titles[i],
             )
 end
 pltDiagramTOP1 = @chain scat.(top1) subplots square_subplots!([0, 50])
 pltDiagramTOP3 = @chain scat.(top3) subplots square_subplots!([0, 50])
-relayout!(pltDiagramTOP1, title_text="TOP1")
-relayout!(pltDiagramTOP3, title_text="TOP3")
-savefig(pltDiagramTOP1, "figs/persistence_diagrams-TOP1.html")
-savefig(pltDiagramTOP3, "figs/persistence_diagrams-TOP3.html")
+
+relayout!(pltDiagramTOP1, title_text="TOP1", template="simple_white")
+relayout!(pltDiagramTOP3, title_text="TOP3", template="simple_white")
+
+mkpath("figs")
+# savefig(pltDiagramTOP1, "figs/persistence_diagrams_dim2-TOP1.html")
+# savefig(pltDiagramTOP3, "figs/persistence_diagrams_dim2-TOP3.html")
 
 topn1 = 10
 topn2 = 20
@@ -213,8 +165,6 @@ rgbs = [round.(Int, rgb .* 255) for rgb in rgbs]
 rgbs = ["rgb("*join(rgb,',')*')' for rgb in rgbs]
 
 alltraces = []
-
-mkpath("figs")
 for i in 1:nrow(df)
     traces = [
         # main basic gray point cloud
@@ -276,7 +226,7 @@ for i in 1:nrow(df)
           );
 
     # comm1
-    comm = leiden(reps1[i], bars1[i], size(Cas[i],1))
+    comm = leidens[1][title2leiden(titles[i])]
     _colors = [c > 0 && c ≤ length(rgbs) ? rgbs[c] : "gray" for c in comm]
     push!(traces,
           scatter3d(;
@@ -295,7 +245,7 @@ for i in 1:nrow(df)
           );
 
     # comm2
-    comm = leiden(reps2[i], bars2[i], size(Cas[i],1))
+    comm = leidens[2][title2leiden(titles[i])]
     _colors = [c > 0 && c ≤ length(rgbs) ? rgbs[c] : "gray" for c in comm]
     push!(traces,
           scatter3d(;
@@ -381,9 +331,38 @@ for i in 1:nrow(df)
             # showTips=false # not implemented in the julia version and last change to the github was 5 months ago.
         ))
 
-    savefig(plt, "figs/$(df.name[i])-$(titles[i]).html")
+    # savefig(plt, "figs/$(df.name[i])-$(titles[i]).html")
 end
 
+i = 4
+comm = leidens[1][title2leiden(titles[i])]
+_colors = [c > 0 && c ≤ length(rgbs) ? rgbs[c] : "gray" for c in comm]
+trace = scatter3d(
+    ;
+    x=Cas[i][:, 1],
+    y=Cas[i][:, 2],
+    z=Cas[i][:, 3],
+    marker=attr(
+        size=7,
+        color=_colors,
+    ),
+    line_color="gray",
+    # mode="markers",
+    name="Leiden 1",
+    text=comm,
+)
+
+scene_axes=attr(showgrid=false, zeroline=false, showticklabels=false, title="")
+fig = plot(trace, Layout(
+    template="simple_white",
+    scene=attr(
+        camera_eye=attr(x=-1, y=+1.5, z=-1),
+        xaxis=scene_axes,
+        yaxis=scene_axes,
+        zaxis=scene_axes,
+    ),
+))
+savefig(fig, "figs/" * df[i,:name] * "-" * titles[i] * "-Leiden1.pdf", width=1000, height=800, scale=2)
 
 # align sequences to compare
 seqs = LongAA.(df.sequence)
@@ -391,65 +370,115 @@ costmodel = AffineGapScoreModel(BLOSUM62, gap_open=-10, gap_extend=-1)
 align47 = pairalign(OverlapAlignment(), seqs[4], seqs[7], costmodel)
 align74 = pairalign(OverlapAlignment(), seqs[7], seqs[4], costmodel)
 
-xs = Int[]
-x = 0
-skip = 0
-for (seqAA, refAA) in collect(align74.aln)
-    if refAA != AA_Gap
-        global x += 1
+"""
+Get xs with gaps mapping from pairwise alignment back to the coordinates of the 
+two unaligned sequences.
+"""
+function align2xs(alignment::PairwiseAlignmentResult)
+    align2xs(alignment.aln)
+end
+function align2xs(alignment::PairwiseAlignment)
+    xs1 = Union{Int,Nothing}[]
+    xs2 = Union{Int,Nothing}[]
+    x1 = 0
+    x2 = 0
+    for (AA1, AA2) in collect(alignment)
+        if AA1 == AA_Gap
+            push!(xs1, nothing)
+        else
+            x1 += 1
+            push!(xs1, x1)
+        end
+        if AA2 == AA_Gap
+            push!(xs2, nothing)
+        else
+            x2 += 1
+            push!(xs2, x2)
+        end
     end
-    if seqAA != AA_Gap
-        push!(xs, x)
-    end
+    return xs1, xs2
 end
 
-plt = [
+xsHuman, xsMRSA = align2xs(align74)
+
+
+fig = [
 plot([
     scatter(;
-            y=Cas[4][:,5],
-            name="MRSA cent1",
+            name="MRSA", # cent1
+            y=[isnothing(x) ? nothing : Cas[4][x,5] for x in xsMRSA],
             mode="lines",
+            fill="tozeroy",
+            line_color="maroon",
     ),
     scatter(;
-            y=Cas[7][:,5],
-            name="Human cent1",
+            name="Human", # cent1
+            y=[isnothing(x) ? nothing : Cas[7][x,5] for x in xsHuman],
             mode="lines",
-            visible="legendonly",
+            fill="tozeroy",
+            line_color="black",
     ),
-    scatter(;
-            x=xs[xs .> 0],
-            y=Cas[7][xs .> 0,5],
-            name="Human cent1 aligned",
-            mode="markers+lines",
-            line_width=1.5,
-            marker_size=5,
-            text=(1:sum(xs .> 0)) .+ sum(xs .== 0),
-    ),
-    ])
+    ], Layout(
+     yaxis_title="TIF dim 1",
+     yaxis_ticklen=2,
+    ))
 plot([
     scatter(;
-            y=Cas[4][:,6],
-            name="MRSA cent2",
+            name="MRSA", # cent2
+            y=[isnothing(x) ? nothing : Cas[4][x,6] for x in xsMRSA],
             mode="lines",
+            fill="tozeroy",
+            line_color="maroon",
     ),
     scatter(;
-            y=Cas[7][:,6],
-            name="Human cent2",
+            name="Human", # cent2
+            y=[isnothing(x) ? nothing : Cas[7][x,6] for x in xsHuman],
             mode="lines",
-            visible="legendonly",
+            fill="tozeroy",
+            line_color="black",
+    ),
+    ], Layout(
+     yaxis_title="TIF dim 2",
+     # xaxis_title="Alignment location",
+     ))
+plot([
+    scatter(;
+            name="MRSA", # pLDDT
+            y=[isnothing(x) ? nothing : Cas[4][x,4] for x in xsMRSA],
+            mode="lines",
+            fill="tozeroy",
+            line_color="maroon",
     ),
     scatter(;
-            x=xs[xs .> 0],
-            y=Cas[7][xs .> 0,6],
-            name="Human cent2 aligned",
-            mode="markers+lines",
-            line_width=1.5,
-            marker_size=5,
-            text=(1:sum(xs .> 0)) .+ sum(xs .== 0),
+            name="Human", # pLDDT
+            y=[isnothing(x) ? nothing : Cas[7][x,4] for x in xsHuman],
+            mode="lines",
+            fill="tozeroy",
+            line_color="black",
     ),
-    ])
+    ], Layout(
+     yaxis_title="pLDDT",
+     xaxis_title="Alignment location",
+     ))
 ]
-savefig(plt, "figs/MRSA-centAlign.html")
+# only show region of aligment where both sequences are present
+xaxes_attrs=attr(
+    range = findall(.!isnothing.(xsMRSA) .& .!isnothing.(xsHuman))[[begin,end]],
+    ticklen = 2,
+)
+relayout!(
+    fig,
+    yaxis2_ticklen=2,
+    yaxis3_ticklen=2,
+    xaxis =xaxes_attrs,
+    xaxis2=xaxes_attrs,
+    xaxis3=xaxes_attrs,
+    template="simple_white",
+    font_family="Fira Sans",
+)
+
+# savefig(fig, "figs/MRSA-centAlign.html")
+# savefig(fig, "figs/MRSA-centAlign.pdf", width=850, height=550)
 
 
 trace = alltraces[4]
@@ -460,13 +489,22 @@ push!(trace,
                 z=Cas[4][300:450, 3],
                 marker=attr(
                 size=5,
-                color="red",
+                color="maroon",
                 ),
                 mode="markers+lines",
                 name="cent1 difference",
                 )
       )
+fig = plot(trace, Layout(
+    template="simple_white",
+    scene_camera_eye=attr(x=-1, y=+1.5, z=-1),
+))
 
-plt = plot(trace);
-savefig(plt, "figs/MRSA-diff.html")
+savefig(fig, "figs/MRSA-diff3D.html")
+relayout!(fig,
+          template="simple_white",
+          scene_camera_eye=attr(x=-1, y=+1.5, z=-1),
+          showlegend=false,
+          )
+savefig(fig, "figs/MRSA-diff3D.pdf", width=1000, height=800, scale=2)
 

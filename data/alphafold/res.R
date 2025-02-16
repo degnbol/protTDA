@@ -40,8 +40,8 @@ ggplot(dtm, aes(x=method, y=value, fill=`Calc reps`)) +
     geom_text(data=dtm[method=="ripserer.jl alpha"], aes(label=round(value, 3)), vjust=0, size=2.5) +
     xlab("method") +
     scale_y_continuous(expand=expansion(mult=c(0,.05))) +
-    scale_fill_discrete(name="Calculates\nrepresentatives") +
-    theme_bw() +
+    scale_fill_manual(name="Calculates\nrepresentatives", values=c("gray", "green")) +
+    theme_classic() +
     theme(axis.title.y=element_blank(),
           axis.text.x=element_text(angle=45, hjust=1),
           panel.grid.minor.x=element_blank(),
@@ -67,12 +67,19 @@ MBs = c("diskReadMB", "diskWriteMB")
 scl = ceiling(max(df.melt[variable%in%MBs, value])) / 100
 df.melt[variable%in%MBs, value:=value/scl]
 
-ggplot(df.melt, aes(x=timestamp, y=value, color=variable)) +
+df.melt[variable=="memoryPercent", variable:="Memory [%]"]
+df.melt[variable=="cpuPercent", variable:="CPU [%]"]
+df.melt[variable=="diskReadMB", variable:="Read [MB/s]"]
+df.melt[variable=="diskWriteMB", variable:="Write [MB/s]"]
+
+ggplot(df.melt, aes(x=timestamp, y=value, color=variable, linewidth=variable)) +
     geom_line() +
     scale_y_continuous(name="%", limits=c(0,100), expand=c(0,0),
                        sec.axis=sec_axis(~.*scl, name="MB/s")) +
-    scale_color_discrete(name="Measurement", labels=c("memory", "CPU", "read", "write")) +
-    theme_bw()
+    xlab("Timestamp") +
+    scale_linewidth_manual(values=c(2, 2, 1, 1)) +
+    scale_color_discrete(name="Measurement") +
+    theme_classic()
 
 ggsave("AF_PH_run.pdf", width=6, height=2)
 

@@ -39,7 +39,7 @@ dfeD = innerjoin(
 # add root node and domain node labels
 dfnD.id .= dfnD.domain
 @assert dfnD.id == split("ABEV", "") # assert order
-dfnD.label = ["Archaea", "Bacteria", "Eukaryote", "Virus"]
+dfnD.label = ["Archaea", "Bacteria", "Eukaryota", "Virus"]
 append!(dfnD, DataFrame(id="O", domain="O", label="Origin", proteins=sum(dfnD.proteins)); cols=:subset)
 append!(dfeD, DataFrame(parent="O", child=split("ABEV", "")); cols=:subset)
 
