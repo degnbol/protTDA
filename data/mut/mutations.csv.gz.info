@@ -1,0 +1,14 @@
+Based on the missense3D datasets currently available at
+https://missense3d.bc.ic.ac.uk/missense3d/dataset.html
+
+Main dataset of 606 genes and 4099 variants:
+https://missense3d.bc.ic.ac.uk/missense3d/download/all_dataset.xlsx
+
+The control dataset of 855 genes and 6130 variants:
+https://missense3d.bc.ic.ac.uk/missense3d/download/control_dataset.xlsx
+
+As described in the paper currently available from
+https://www.sciencedirect.com/science/article/pii/S0022283619302037
+the control was used to check if the distance metrics (such as breaking disulphide bonds, salt bridges and hydrogen bonds) were giving false positives.
+This was done by recomputing wild-type residues with SCWRL4 and excluding proteins where the recomputation gave differences to distance metrics.
+
