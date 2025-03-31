@@ -30,11 +30,13 @@ stats = []
 for letter in pd.unique(df.AA):
     x = df[(df.AA == letter) & (df.thermo == 0)].Cent2
     y = df[(df.AA == letter) & (df.thermo == 1)].Cent2
-    n = 1000000
+    # n = 1000000
     # diffs = np.random.choice(x, n) - np.random.choice(y, n)
     ks = kstest(x, y)
     stats.append(dict(
         AA=letter,
+        n_meso=len(x),
+        n_thermo=len(y),
         p_mwu=mannwhitneyu(x, y).pvalue,
         p_ks=ks.pvalue,
         D=ks.statistic,
@@ -48,6 +50,8 @@ for letter in pd.unique(df.AA):
 stats = pd.DataFrame(stats)
 stats["fdr_mwu"] = false_discovery_control(stats.p_mwu)
 stats["fdr_ks"] = false_discovery_control(stats.p_ks)
+
+# Here, we look at stats to write table in protTDA overleaf SI_nature.tex
 
 stats = pd.merge(dfAA, stats, on="AA")
 
