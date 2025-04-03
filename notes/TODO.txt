@@ -1,0 +1,19 @@
+disallow null, add indexes.
+
+try opc as role for postgres DB on spartan.
+
+
+# From meeting with Agnese 21 may 2024
+
+ppl dont trust hic for 3D reconstruction to relate it to genetics heather says to agnese.
+keep note of that, maybe make the point very strongly that we circumvent reconstruction by using abstract maths with PH.
+
+the void bounds result was for void clusters agnese says.
+
+add slide or cool overlay with open questions.
+what is the systematic difference for eukaryotic proteins in latest result?
+one guess would be Post translation modifications, such as carbohydrate side chains, since these are supposedly only present for eukaryotes? or are they also present for archaea in which case hmmmm.
+
+other open questions or future potential work and collaboration would be related to topological alignment. e.g. aligning and correlating centralities. if we look at their curves they have strong similarities for similar proteins, i.e. use algos that ppl already invented for letters, but do it on a curve instead. it would make it possible to create a tree of life based on more functional considerations, that sequence similarity.
+
+

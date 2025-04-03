@@ -13,7 +13,8 @@ for file in readdir("xyz")
     append!(df_resis, df_resi)
 end
 
-df_bounds = CSV.read("H2comm_boundaries.tsv.gz", DataFrame)[!, Not("indexCA")]
+# df_bounds = CSV.read("H2comm_boundaries.tsv.gz", DataFrame)[!, Not("indexCA")]
+df_bounds = CSV.read("H2comm_boundaries.tsv", DataFrame)[!, Not("index")]
 df_cats = CSV.read("CSA_sites.tsv", DataFrame)
 df_bounds[!, "bound"] .= true
 df_cats[!, "cat"] .= true

@@ -18,3 +18,6 @@ proteins) but reads super fast with lz4 compression. 0.16 sec for 1000 files vs.
 
 Comparison of disk usages for DBs:
 https://www.arangodb.com/2012/07/collection-disk-usage-arangodb/
+
+
+

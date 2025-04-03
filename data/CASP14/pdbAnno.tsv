@@ -1,0 +1,153 @@
+Target	Type	Res	Oligo.State	Entry Date	Server Exp.	QA Exp.	Human Exp.	Cancellation Date	Description	pdb
+T1024	All groups	408	A1	2020-05-18	2020-05-21	m1:2020-05-25 m2:2020-05-27	2020-06-08	-	LmrP 6t1z	6t1z
+T1025	Server only	268	A1	2020-05-19	2020-05-22	m1:2020-05-26 m2:2020-05-28	2020-06-09	-	AtmM 6uv6	6uv6
+T1026	All groups	172	A1	2020-05-19	2020-05-22	m1:2020-05-26 m2:2020-05-28	2020-06-09	-	FBNSV 6s44	6s44
+T1027	All groups	168	A1	2020-05-20	2020-05-23	m1:2020-05-27 m2:2020-05-29	2020-06-10	-	GLuc 7d2o	7d2o
+T1028	Server only	316	A1	2020-05-21	2020-05-24	m1:2020-05-28 m2:2020-05-30	2020-06-11	-	CalU17 6vqp	6vqp
+T1029	All groups	125	A1	2020-05-21	2020-05-24	m1:2020-05-28 m2:2020-05-30	2020-06-11	-	EbsA 6uf2	6uf2
+T1030	All groups	273	A1	2020-05-22	2020-05-25	m1:2020-05-29 m2:2020-05-31	2020-06-12	-	BibA 6poo	6poo
+T1031	All groups	95	A1	2020-05-25	2020-05-28	m1:2020-06-01 m2:2020-06-03	2020-06-15	-	S0A2C3d1 6vr4	6vr4
+T1032	All groups	284	A2	2020-05-25	2020-05-28	m1:2020-06-01 m2:2020-06-03	2020-06-15	-	smchD1 6n64	6n64
+T1033	All groups	100	A1	2020-05-26	2020-05-29	m1:2020-06-02 m2:2020-06-04	2020-06-16	-	S0A2C3d2 6vr4	6vr4
+T1034	All groups	156	A4	2020-05-26	2020-05-29	m1:2020-06-02 m2:2020-06-04	2020-06-16	-	BIL2 6tmm	6tmm
+H1036	All groups	856	A3B3C3	2020-05-27	2020-05-30	m1:2020-06-03 m2:2020-06-05	2020-06-17	-	Monoclonal antibody 93k 6vn1	6vn1
+T1035	All groups	102	A1	2020-05-27	2020-05-30	m1:2020-06-03 m2:2020-06-05	2020-06-17	-	S0A2C3d3 6vr4	6vr4
+T1036s1	Server only	622	A1	2020-05-27	2020-05-30	m1:2020-06-03 m2:2020-06-05	2020-06-17	-	Monoclonal antibody 93k 6vn1	6vn1
+T1037	All groups	404	A1	2020-05-28	2020-05-31	m1:2020-06-04 m2:2020-06-06	2020-06-18	-	S0A2C3d4 6vr4	6vr4
+T1038	All groups	199	A2	2020-05-29	2020-06-01	m1:2020-06-05 m2:2020-06-07	2020-06-19	-	TSWV glycoprotein 6ya2	6ya2
+T1039	All groups	161	A1	2020-05-29	2020-06-01	m1:2020-06-05 m2:2020-06-07	2020-06-19	-	S0A2C3d5 6vr4	6vr4
+T1040	All groups	130	A1	2020-06-01	2020-06-04	m1:2020-06-08 m2:2020-06-10	2020-06-22	-	S0A2C3d6 6vr4	6vr4
+T1041	All groups	242	A1	2020-06-01	2020-06-04	m1:2020-06-08 m2:2020-06-10	2020-06-22	-	S0A2C3d7 6vr4	6vr4
+T1042	All groups	289	A1	2020-06-02	2020-06-05	m1:2020-06-09 m2:2020-06-11	2020-06-26	-	S0A2C3d8 6vr4	6vr4
+T1043	All groups	148	A1	2020-06-02	2020-06-05	m1:2020-06-09 m2:2020-06-11	2020-06-26	-	S0A2C3d9 6vr4	6vr4
+H1044	All groups	2180	A1	2020-06-03	2020-06-06	m1:2020-06-10 m2:2020-06-12	2020-06-28	-	S0A2C3 6vr4	6vr4
+H1045	All groups	330	A1B1	2020-06-04	2020-06-07	m1:2020-06-11 m2:2020-06-13	2020-06-25	-	PEX4-PEX22 6xod	6xod
+T1045s1	Server only	157	A1	2020-06-04	2020-06-07	m1:2020-06-11 m2:2020-06-13	2020-06-25	-	PEX4-PEX22 6xod	6xod
+T1045s2	All groups	173	A1	2020-06-04	2020-06-07	m1:2020-06-11 m2:2020-06-13	2020-06-25	-	PEX4-PEX22 6xod	6xod
+H1046	All groups	216	A2B2	2020-06-05	2020-06-08	m1:2020-06-12 m2:2020-06-14	2020-06-23	2020-06-28	RI-T complex 6px4 <em><font color=red>Canceled: paper published.</font></em>	6px4
+T1046s1	All groups	74	A1	2020-06-05	2020-06-08	m1:2020-06-12 m2:2020-06-14	2020-06-23	-	RI-T complex 6px4	6px4
+T1046s2	All groups	142	A1	2020-06-05	2020-06-08	m1:2020-06-12 m2:2020-06-14	2020-06-23	-	RI-T complex 6px4	6px4
+H1047	All groups	597	A1B1(x?)	2020-06-08	2020-06-11	m1:2020-06-15 m2:2020-06-17	2020-06-29	-	FlgH-FlgI 7bgl	7bgl
+T1047s1	All groups	232	A1	2020-06-08	2020-06-11	m1:2020-06-15 m2:2020-06-17	2020-06-29	-	FlgH-FlgI 7bgl	7bgl
+T1047s2	All groups	365	A1	2020-06-08	2020-06-11	m1:2020-06-15 m2:2020-06-17	2020-06-29	-	FlgH-FlgI 7bgl	7bgl
+T1048	All groups	109	A4	2020-06-09	2020-06-12	m1:2020-06-16 m2:2020-06-18	2020-06-30	2020-10-09	Q7VLF5 6un9 <em><font color=red>Single helix - not evaluated for tertiary structure.</font></em>	6un9
+T1049	All groups	141	A1	2020-06-09	2020-06-12	m1:2020-06-16 m2:2020-06-18	2020-06-30	-	MrpH 6y4f	6y4f
+R1902-D3	Refinement	-	-	2020-06-10	2020-08-08	-	2020-08-14	-	nsp4 Refinement of CASP-covid models: Domain 3 (res. 401-500) of the CASP_covid target C1902 (nsp4).	
+T1050	All groups	779	A2	2020-06-10	2020-06-14	m1:2020-06-18 m2:2020-06-20	2020-07-01	-	A7LXT1	
+T1051	All groups	126	A1	2020-06-10	2020-06-13	m1:2020-06-17 m2:2020-06-19	2020-07-01	2020-10-09	A0A0H3LWK6 7txx <em><font color=red>Canceled: no structure.</font></em>	7txx
+R1906-D1	Refinement	-	-	2020-06-11	2020-08-08	-	2020-08-14	-	M-protein Refinement of CASP-covid models: Domain 1 (res. 1-103) of the CASP_covid target C1906 (membrane protein).	
+T1052	All groups	832	A3	2020-06-11	2020-06-15	m1:2020-06-19 m2:2020-06-21	2020-07-02	-	Q858F5.1	
+R1901-D3	Refinement	-	-	2020-06-12	2020-08-09	-	2020-08-15	-	nsp2 Refinement of CASP-covid models: Adjusted domain 3 (res. 510-638) of the CASP_covid target C1901 (nsp2).	
+T1053	All groups	580	A1	2020-06-12	2020-06-16	m1:2020-06-20 m2:2020-06-22	2020-07-03	-	T4SS effector 7m7a	7m7a
+R1906-D2	Refinement	-	-	2020-06-15	2020-08-09	-	2020-08-15	-	M-protein Refinement of CASP-covid models: Adjusted domain 2 (res.116-205) from CASP-covid target C1906 (membrane protein).	
+T1054	All groups	190	A2	2020-06-15	2020-06-18	m1:2020-06-22 m2:2020-06-24	2020-07-06	-	A7M79_12275 6v4v	6v4v
+T1055	All groups	148	A1	2020-06-15	2020-06-18	m1:2020-06-22 m2:2020-06-24	2020-07-06	-	DNA polymerase processivity factor 6zyc	6zyc
+R1903-D2	Refinement	-	-	2020-06-16	2020-08-10	-	2020-08-16	-	nsp6 Refinement of CASP-covid models: Domain 2 (res. 221-290) of the CASP_covid target C1903 (nsp6).	
+T1056	All groups	186	A1	2020-06-16	2020-06-19	m1:2020-06-23 m2:2020-06-25	2020-07-07	-	M23 peptidase 6yj1	6yj1
+T1057	All groups	287	A1	2020-06-16	2020-06-19	m1:2020-06-23 m2:2020-06-25	2020-07-07	-	N4-Cytosine Methyltransferase 7m6b	7m6b
+R1029	Refinement	-	-	2020-06-17	2020-06-20	-	2020-07-08	-	EbsA Hard refinement target. Starting model's GDT_HA=28.	
+T1058	All groups	382	A1	2020-06-17	2020-06-20	m1:2020-06-24 m2:2020-06-26	2020-07-08	-	Q9I117 7abw	7abw
+T1059	All groups	32	A1	2020-06-17	2020-06-20	m1:2020-06-24 m2:2020-06-26	2020-07-08	2020-10-09	MtrunA17_Chr7g0216231 7th8 <em><font color=red>Canceled: no structure.</font></em>	7th8
+H1060	All groups	1106	A6B3C12D6	2020-06-18	2020-06-24	m1:2020-06-28 m2:2020-06-30	2020-07-27	-	T5 phage tail subcomplex	
+R1033	Refinement	-	-	2020-06-18	2020-06-21	-	2020-07-09	-	S0A2C3d2 Starting model's GDT_HA=38	
+T1060s2	All groups	298	A1	2020-06-18	2020-06-21	m1:2020-06-25 m2:2020-06-27	2020-07-24	-	T5 phage tail subcomplex	
+T1060s3	All groups	140	A1	2020-06-18	2020-06-21	m1:2020-06-25 m2:2020-06-27	2020-07-24	-	T5 phage tail subcomplex	
+R1031	Refinement	-	-	2020-06-19	2020-06-22	-	2020-07-10	-	S0A2C3d1 Starting model's GDT_HA=52	
+T1061	All groups	949	A3	2020-06-19	2020-06-23	m1:2020-06-27 m2:2020-06-29	2020-07-18	-	T5 phage tail subcomplex	
+T1062	All groups	35	A3	2020-06-19	2020-06-22	m1:2020-06-26 m2:2020-06-28	2020-07-10	2020-10-09	T5 phage tail subcomplex <em><font color=red>Just a broken helix - not evaluated for tertiary structure.</font></em>	
+R1030-D2	Refinement	-	-	2020-06-22	2020-06-25	-	2020-07-13	-	BibA Starting model's GDT_HA=40	
+T1063	All groups	196	A4	2020-06-22	2020-06-25	m1:2020-06-29 m2:2020-07-01	2020-07-13	2020-10-09	Q9NPC3 <em><font color=red>Canceled: no structure.</font></em>	
+T1064	All groups	106	A1	2020-06-22	2020-06-25	m1:2020-06-29 m2:2020-07-01	2020-07-13	-	ORF8 7jtl	7jtl
+H1065	All groups	225	A1B1	2020-06-23	2020-06-26	m1:2020-06-30 m2:2020-07-02	2020-07-14	-	N4-Cytosine Methyltransferase 7m5f	7m5f
+R1039	Refinement	-	-	2020-06-23	2020-06-26	-	2020-07-14	-	S0A2C3d5 Starting model's GDT_HA=36	
+T1065s1	All groups	127	A1	2020-06-23	2020-06-26	m1:2020-06-30 m2:2020-07-02	2020-07-14	-	N4-Cytosine Methyltransferase 7m5f	7m5f
+T1065s2	All groups	98	A1	2020-06-23	2020-06-26	m1:2020-06-30 m2:2020-07-02	2020-07-14	-	N4-Cytosine Methyltransferase 7m5f	7m5f
+H1066	All groups	489	A1B1	2020-06-24	2020-06-27	m1:2020-07-01 m2:2020-07-03	2020-07-15	2020-10-09	CCPol-MP-2 <em><font color=red>Canceled: no structure.</font></em>	
+R1035	Refinement	-	-	2020-06-24	2020-06-27	-	2020-07-15	-	S0A2C3d3 Starting model's GDT_HA=68	
+T1066s1	All groups	366	A1	2020-06-24	2020-06-27	m1:2020-07-01 m2:2020-07-03	2020-07-15	2020-10-09	CCPol-MP-2 <em><font color=red>Canceled: no structure.</font></em>	
+T1066s2	All groups	123	A1	2020-06-24	2020-06-27	m1:2020-07-01 m2:2020-07-03	2020-07-15	2021-10-09	CCPol-MP-2 <em><font color=red>Canceled: no structure.</font></em>	
+R1038-D2	Refinement	-	-	2020-06-25	2020-06-28	-	2020-07-16	-	TSWV glycoprotein Starting model's GDT_HA=57	
+T1067	All groups	264	A1	2020-06-25	2020-06-28	m1:2020-07-02 m2:2020-07-04	2020-07-16	-	Bd3741	
+T1068	All groups	211	A1	2020-06-25	2020-06-28	m1:2020-07-02 m2:2020-07-04	2020-07-16	-	LmazxJ3-JDBD	
+H1069	All groups	491	A1B1	2020-06-26	2020-06-29	m1:2020-07-03 m2:2020-07-05	2020-07-17	2020-10-09	CCPol-MP-1 <em><font color=red>Canceled: no structure.</font></em>	
+R1040v1	Refinement	-	-	2020-06-26	2020-06-29	-	2020-07-17	-	S0A2C3d6 Refinement of model v1 from T1040	
+R1040v2	Refinement	-	-	2020-06-26	2020-06-29	-	2020-07-18	-	S0A2C3d6 Refinement of model v2 from T1040	
+T1069s1	All groups	369	A1	2020-06-26	2020-06-29	m1:2020-07-03 m2:2020-07-05	2020-07-17	2021-10-09	CCPol-MP-1 <em><font color=red>Canceled: no structure.</font></em>	
+T1069s2	All groups	122	A1	2020-06-26	2020-06-29	m1:2020-07-03 m2:2020-07-05	2020-07-17	2020-10-09	CCPol-MP-1 <em><font color=red>Canceled: no structure.</font></em>	
+T1044	All groups	2180	A1	2020-06-28	2020-06-28	m1:2020-07-02 m2:2020-07-04	2020-06-28	-	S0A2C3 6vr4	6vr4
+R1041v1	Refinement	-	-	2020-06-29	2020-07-02	-	2020-07-19	-	S0A2C3d7 Refinement of model v1 from T1041	
+R1041v2	Refinement	-	-	2020-06-29	2020-07-02	-	2020-07-20	-	S0A2C3d7 Refinement of model v2 from T1041	
+T1070	All groups	335	A3	2020-06-29	2020-07-02	m1:2020-07-06 m2:2020-07-08	2020-07-20	-	G3M192 7rej	7rej
+R1034	Refinement	-	-	2020-06-30	2020-07-03	-	2020-07-21	-	BIL2 Starting model's GDT_HA=70	
+T1071	All groups	488	A1	2020-06-30	2020-07-03	m1:2020-07-07 m2:2020-07-09	2020-07-21	2020-10-09	Q9KQ66 <em><font color=red>Canceled: no structure.</font></em>	
+H1072	All groups	170	A2B2	2020-07-01	2020-07-04	m1:2020-07-08 m2:2020-07-10	2020-07-22	-	Q6PIF2, Q9BXU0 6r17	6r17
+R1042v1	Refinement	-	-	2020-07-01	2020-07-04	-	2020-07-22	-	S0A2C3d8	
+R1042v2	Refinement	-	-	2020-07-01	2020-07-04	-	2020-07-23	-	S0A2C3d8	
+T1072s1	All groups	101	A1	2020-07-01	2020-07-04	m1:2020-07-08 m2:2020-07-10	2020-07-22	2020-10-09	Q6PIF2, Q9BXU0 6r17 <em><font color=red>Single helix - not evaluated for tertiary structure.</font></em>	6r17
+T1072s2	Server only	69	A1	2020-07-01	2020-07-04	m1:2020-07-08 m2:2020-07-10	2020-07-22	2020-07-06	Q6PIF2, Q9BXU0 6hk8 <em><font color=red>Canceled: 100% seq.id. template available.</font></em>	6hk8
+R1045s2	Refinement	-	-	2020-07-02	2020-07-05	-	2020-07-24	-	PEX4-PEX22 Starting model's GDT_HA=62	
+T1073	All groups	255	A4	2020-07-02	2020-07-05	m1:2020-07-09 m2:2020-07-11	2020-07-23	-	Bd2625	
+T1074	All groups	202	A1	2020-07-02	2020-07-05	m1:2020-07-09 m2:2020-07-11	2020-07-23	-	Bd0675 7oc9	7oc9
+R1043v1	Refinement	-	-	2020-07-03	2020-07-06	-	2020-07-25	-	S0A2C3d9	
+R1043v2	Refinement	-	-	2020-07-03	2020-07-06	-	2020-07-26	-	S0A2C3d9	
+T1075	All groups	463	A1	2020-07-03	2020-07-06	m1:2020-07-10 m2:2020-07-12	2020-07-24	2020-10-09	HNRNPK <em><font color=red>Canceled: no structure.</font></em>	
+R1027	Refinement	-	-	2020-07-06	2020-07-09	-	2020-07-27	2020-08-15	GLuc <em><font color=red>Canceled: preprint published.</font></em> <em><font color=red>Canceled: preprint published.</font></em>	
+T1076	All groups	552	A1	2020-07-06	2020-07-09	m1:2020-07-13 m2:2020-07-15	2020-07-27	-	HACL 6xn8	6xn8
+T1077	All groups	159	A1	2020-07-07	2020-07-10	m1:2020-07-14 m2:2020-07-16	2020-07-28	-	YfaZ <em><font color=red>Will be assessed separately alongside the NMR-assisted predictions for N1077.</font></em>	
+T1078	All groups	138	A2	2020-07-07	2020-07-10	m1:2020-07-14 m2:2020-07-16	2020-07-28	-	Tsp1 7cwp	7cwp
+T1079	All groups	505	A1	2020-07-08	2020-07-11	m1:2020-07-15 m2:2020-07-17	2020-07-29	-	Bd0655	
+R1053v1	Refinement	-	-	2020-07-09	2020-07-12	-	2020-07-29	-	T4SS effector	
+R1053v2	Refinement	-	-	2020-07-09	2020-07-12	-	2020-07-30	-	T4SS effector	
+T1080	All groups	922	A3	2020-07-09	2020-07-12	m1:2020-07-16 m2:2020-07-18	2020-07-30	-	Bd3182	
+H1081	All groups	758	A20	2020-07-10	2020-07-13	m1:2020-07-17 m2:2020-07-19	2020-08-04	-	A0A140NLR5 7pk6	7pk6
+R1055	Refinement	-	-	2020-07-10	2020-07-13	-	2020-07-31	-	DNA polymerase processivity factor Starting model's GDT_HA=59.	
+T1082	All groups	97	A1	2020-07-10	2020-07-13	m1:2020-07-17 m2:2020-07-19	2020-07-31	-	gp63 7cn6	7cn6
+R1056	Refinement	-	-	2020-07-13	2020-07-16	-	2020-08-01	-	M23 peptidase	
+T1083	All groups	98	A2	2020-07-13	2020-07-16	m1:2020-07-20 m2:2020-07-22	2020-08-03	-	Nitro	
+T1084	All groups	73	A2	2020-07-13	2020-07-16	m1:2020-07-20 m2:2020-07-22	2020-08-03	-	Meio	
+R1052-D2	Refinement	-	-	2020-07-14	2020-07-17	-	2020-08-04	-	Q858F5.1 Starting model's GDT_HA=58	
+T1085	All groups	588	A1	2020-07-14	2020-07-17	m1:2020-07-21 m2:2020-07-23	2020-08-04	-	Bd2374_c	
+T1086	All groups	408	A1	2020-07-15	2020-07-18	m1:2020-07-22 m2:2020-07-24	2020-08-05	-	Bd2374_n	
+T1087	All groups	93	A2	2020-07-16	2020-07-19	m1:2020-07-23 m2:2020-07-25	2020-08-06	-	Tuna	
+T1088	All groups	226	A1	2020-07-16	2020-07-19	m1:2020-07-23 m2:2020-07-25	2020-08-06	-	MipA <em><font color=red>Will be assessed separately alongside the NMR-assisted predictions for N1088.</font></em>	
+R1049	Refinement	-	-	2020-07-17	2020-07-20	-	2020-08-03	-	MrpH Starting model's GDT_HA=51	
+S1063	Assisted	-	-	2020-07-17	2020-07-20	-	2020-08-05	-	Q9NPC3	
+T1089	All groups	404	A1	2020-07-17	2020-07-20	m1:2020-07-24 m2:2020-07-26	2020-08-07	-	Sia 5524 7mhu	5524
+T1090	All groups	193	A1	2020-07-17	2020-07-20	m1:2020-07-24 m2:2020-07-26	2020-08-07	-	NP_595817.1 7k7w	7k7w
+R1057	Refinement	-	-	2020-07-20	2020-07-23	-	2020-08-10	-	N4-Cytosine Methyltransferase Starting model's GDT_HA=64	
+T1091	All groups	863	A1	2020-07-20	2020-07-23	m1:2020-07-27 m2:2020-07-29	2020-08-10	-	PitA 7w6b	7w6b
+R1067v1	Refinement	-	-	2020-07-21	2020-07-24	-	2020-08-11	-	Bd3741	
+R1067v2	Refinement	-	-	2020-07-21	2020-07-24	-	2020-08-12	-	Bd3741	
+T1092	All groups	426	A1	2020-07-21	2020-07-24	m1:2020-07-28 m2:2020-07-30	2020-08-11	-	AR9_g270	
+R1065s1	Refinement	-	-	2020-07-22	2020-07-25	-	2020-08-13	-	N4-Cytosine Methyltransferase Starting model's GDT_HA=73	
+T1093	All groups	631	A1	2020-07-22	2020-07-26	m1:2020-07-30 m2:2020-08-01	2020-08-12	-	AR9_g154	
+R1065s2	Refinement	-	-	2020-07-23	2020-07-26	-	2020-08-14	-	N4-Cytosine Methyltransferase Starting model's GDT_HA=75	
+T1094	All groups	496	A1	2020-07-23	2020-07-26	m1:2020-07-30 m2:2020-08-01	2020-08-13	-	AR9_g105	
+T1095	All groups	665	A1	2020-07-24	2020-07-28	m1:2020-08-01 m2:2020-08-03	2020-08-14	-	AR9_g089	
+R1068	Refinement	-	-	2020-07-27	2020-07-30	-	2020-08-17	-	LmazxJ3-JDBD Starting model's GDT_HA=41	
+T1096	All groups	464	A1	2020-07-27	2020-07-30	m1:2020-08-03 m2:2020-08-05	2020-08-17	-	AR9_g226	
+H1097	All groups	2682	A1B1C1D1E1	2020-07-28	2020-07-31	m1:2020-08-04 m2:2020-08-06	2020-08-18	-	AR9	
+R1074v1	Refinement	-	-	2020-07-28	2020-07-31	-	2020-08-18	-	Bd0675	
+R1074v2	Refinement	-	-	2020-07-28	2020-07-31	-	2020-08-19	-	Bd0675	
+T1098	All groups	538	A1	2020-07-29	2020-08-01	m1:2020-08-05 m2:2020-08-07	2020-08-19	2020-10-09	OsSUT1 <em><font color=red>Canceled: unverified structure.</font></em>	
+R1078	Refinement	-	-	2020-07-30	2020-08-02	-	2020-08-20	-	Tsp1	
+T1099	All groups	262	A1	2020-07-30	2020-08-05	m1:2020-08-09 m2:2020-08-11	2020-08-25	-	P0C6J7 6ygh	6ygh
+R1061-D3	Refinement	-	-	2020-07-31	2020-08-03	-	2020-08-21	-	T5 phage tail subcomplex Starting model's GDT_HA=58 (calculated on -D3 residues: 736-838)	
+T1100	All groups	338	A1	2020-07-31	2020-08-03	m1:2020-08-07 m2:2020-08-09	2020-08-21	-	AAB89755.1	
+T1101	All groups	318	A1	2020-07-31	2020-08-03	m1:2020-08-07 m2:2020-08-09	2020-08-21	-	Alvi ASCC1	
+H1102	All groups	782	A1B1	2020-08-03	2020-08-06	m1:2020-08-10 m2:2020-08-12	2020-08-24	2020-08-03	Orf10-ZYG11B <em><font color=red>Canceled.</font></em>	
+R1082	Refinement	-	-	2020-08-03	2020-08-06	-	2020-08-24	-	gp63	
+H1103	All groups	563	A1B1	2020-08-04	2020-08-08	m1:2020-08-12 m2:2020-08-14	2020-08-29	2020-10-09	Orf3a-HMOX1 <em><font color=red>Canceled: no structure.</font></em>	
+R1085-D1	Refinement	-	-	2020-08-10	2020-08-13	-	2020-08-31	-	Bd2374_c	
+R1090	Refinement	-	-	2020-08-10	2020-08-13	-	2020-08-30	-	NP_595817.1	
+R1034x1	Refinement	-	-	2020-08-11	2020-08-14	-	2020-09-01	-	BIL2 Extended time refinement Extended time refinement	
+R1027x1	Refinement	-	-	2020-08-12	2020-08-15	-	2020-09-02	2020-08-15	GLuc <em><font color=red>Canceled: preprint published.</font></em> <em><font color=red>Canceled: preprint published.</font></em>	
+R1029x1	Refinement	-	-	2020-08-13	2020-08-16	-	2020-09-03	-	EbsA Extended time refinement Extended time refinement	
+R1067x1	Refinement	-	-	2020-08-14	2020-08-17	-	2020-09-04	-	Bd3741 Extended time refinement Extended time refinement	
+R1091-D2	Refinement	-	-	2020-08-17	2020-08-20	-	2020-09-07	-	PitA	
+R1055x1	Refinement	-	-	2020-08-18	2020-08-21	-	2020-09-08	-	DNA polymerase processivity factor Extended time refinement Extended time refinement	
+R1056x1	Refinement	-	-	2020-08-19	2020-08-22	-	2020-09-09	-	M23 peptidase Extended time refinement Extended time refinement	
+R1068x1	Refinement	-	-	2020-08-20	2020-08-23	-	2020-09-10	-	LmazxJ3-JDBD Extended time refinement Extended time refinement	
+R1074x2	Refinement	-	-	2020-08-21	2020-08-24	-	2020-09-11	-	Bd0675 Extended time refinement Extended time refinement	
+N1088	Assisted	-	-	2020-08-25	2020-08-28	-	2020-09-14	-	MipA	
+N1077	Assisted	-	-	2020-09-01	2020-09-04	-	2020-09-22	-	YfaZ	

@@ -49,7 +49,7 @@ end
 
 # set time relative to start
 df = transform(groupby(df, :lang), :time => (x -> x .- minimum(x)) => :time)
-# time is in ms for js and seconds for jl
+# "time" is in ms for js and seconds for jl
 df[df.lang .== "js", :time] .= round.(Int, df[df.lang .== "js", :time] ./ 1000)
 
 # rename for nicer plotting
