@@ -122,7 +122,7 @@ dt[meas=="maxrep",  xmin:=floor(bucket/w_maxrep)*w_maxrep]
 dtm[meas=="richness",xmin:=floor(bucket/w_rich)*w_rich]
 dtm[meas=="nrep",    xmin:=floor(bucket/w_nrep)*w_nrep]
 dtm[meas=="maxrep",  xmin:=floor(bucket/w_maxrep)*w_maxrep]
-dt = dt[, .(freq=sum(freq), weighted=sum(weighted)), by=c("domain", "xmin", "H", "meas")]
+dt  = dt[,  .(freq=sum(freq), weighted=sum(weighted)), by=c("domain",    "xmin", "H", "meas")]
 dtm = dtm[, .(freq=sum(freq), weighted=sum(weighted)), by=c("multicell", "xmin", "H", "meas")]
 
 # scale to sum to 1 like a density
@@ -339,5 +339,34 @@ width = 13/2
 height = 6/4*3
 # ggsave("domainhist-rich.pdf", p1, width=width, height=height)
 # ggsave("domainhist-rich.svg", p1, width=width, height=height)
-ggsave("multicell-hists.pdf", p3, width=width, height=height)
+# ggsave("multicell-hists.pdf", p3, width=width, height=height)
 
+# write figure data out for publication
+# richness fig xmin is currently indicating bucket index
+dt.rich.plt[,xmin:=bucket2richness(xmin)]
+dtm.rich.plt[,xmin:=bucket2richness(xmin)]
+# display names
+dt.rich.plt[domain=="B", domain:="Bacteria"]
+dt.rich.plt[domain=="A", domain:="Archaea"]
+dt.rich.plt[domain=="E", domain:="Eukaryota"]
+dt.pub = rbind(
+    dt.rich.plt[, .(meas, H="Loops", domain, xmin, density=densw)],
+    dt[meas!="richness", .(meas, H, domain, xmin, density=densw)]
+)
+dtm.pub = rbind(
+    dtm.rich.plt[, .(meas, H="Loops", multicell, xmin, density=densw)],
+    dtm[meas!="richness", .(meas, H, multicell, xmin, density=densw)]
+)
+# indicate subfigure
+dt.pub[meas=="richness",subfigure:="A"]
+dt.pub[meas=="nrep",subfigure:="B"]
+dt.pub[meas=="maxrep",subfigure:="C"]
+dtm.pub[meas=="richness",subfigure:="A"]
+dtm.pub[meas=="nrep",subfigure:="B"]
+dtm.pub[meas=="maxrep",subfigure:="C"]
+dt.pub[,meas:=NULL]
+dtm.pub[,meas:=NULL]
+dt.pub = dt.pub[order(subfigure, H, domain, xmin)][,.(subfigure,H,domain,xmin,density)]
+dtm.pub = dtm.pub[order(subfigure, H, multicell, xmin)][,.(subfigure,H,multicellular=multicell,xmin,density)]
+fwrite(dt.pub, "../../../Results/figures/Figure2ABC.tsv", sep='\t')
+fwrite(dtm.pub, "../../../Results/figures/FigureS17ABC.tsv", sep='\t')
