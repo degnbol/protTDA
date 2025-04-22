@@ -58,6 +58,9 @@ p2 = ggplot() +
     theme_classic()
 p2
 
-ggsave("AA_volume_violins.pdf", p1, width=10, height=3)
-ggsave("AA_volume_lm.pdf", p2, width=10, height=3)
+# ggsave("AA_volume_violins.pdf", p1, width=10, height=3)
+# ggsave("AA_volume_lm.pdf", p2, width=10, height=3)
 
+# write figure data for publication
+df.pub = df[, .(thermophile=thermo, accession=acc, AA, AA_volume=Volume, TIF2=Cent2)]
+fwrite(df.pub, "../../Results/figures/Figure4C-S16.tsv.gz")
