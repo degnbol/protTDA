@@ -3,10 +3,6 @@ suppressPackageStartupMessages(library(data.table))
 library(ggplot2)
 
 dt = fread("res.tsv")
-dt[algo == "og eirene", algo := "eirene.jl"]
-dt[algo == "my eirene", algo := "eirene.jl mod"]
-setnames(dt, "algo", "method")
-# H is always "yes" altho I think it was meant to be 1, as in Homology group 1.
 dt[,H:=NULL]
 # peak strongly correlated with RSS (corr=.98 using mlr).
 # Use RSS which is measured for all methods.
