@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 # USE 1: pymol INFILE.pdb [OTHER.pdb ...] pml-color.py -- values.txt
 # USE 2: pymol INFILE.pdb [OTHER.pdb ...] pml-color.py -- values.json [-k ENTRIES...]
+# USE 3: pymol INFILE.pdb [OTHER.pdb ...] pml-color.py -- values.tsv -c COLUMN
+# USE 4: pymol INFILE.pdb [OTHER.pdb ...] pml-color.py -- values.csv -c COLUMN
 # Examples above assumes pml-color.py is in your PATH.
 # values.txt has one numerical value on each line, corresponding to each residue.
 # values.json has this instead inside an entry with keys nested by ENTRIES, by default structure name inside INFILE.pdb.
-# pallete is one of the available ones for the spectrum command: 
+# values.tsv/.csv has a header row, use -c to specify which column to read.
+# pallete is one of the available ones for the spectrum command:
 # https://pymolwiki.org/index.php/Spectrum
 import json
 import sys
 from os.path import isfile
 import argparse
+import numpy as np
 try: import colorcet
 except ModuleNotFoundError: # a little convenience
     import pip; pip.main(['install', 'colorcet'])
@@ -27,13 +31,27 @@ obj = cmd.get_object_list()[0]
 parser = argparse.ArgumentParser(description="Color structure in pymol according to a simple file with numbers or json with similar entry.")
 parser.add_argument("infile")
 parser.add_argument("-k", "--keys", nargs="+", help="For json.", default=[obj])
+parser.add_argument("-c", "--column", help="Column name for TSV/CSV files (required for tabular files).")
 args = parser.parse_args()
 
 if args.infile.endswith(".json"):
     with open(args.infile) as fp:
-        if args.infile.endswith(".json"):
-            values = json.load(fp)
-            for k in args.keys: values = values[k]
+        values = json.load(fp)
+        for k in args.keys: values = values[k]
+elif args.infile.endswith(".tsv") or args.infile.endswith(".csv"):
+    if not args.column:
+        raise ValueError("Column name required for TSV/CSV files. Use -c COLUMN.")
+    delim = '\t' if args.infile.endswith(".tsv") else ','
+    with open(args.infile) as fp:
+        lines = [l.strip().split(delim) for l in fp]
+    header = lines[0]
+    col_idx = header.index(args.column)
+    values = [row[col_idx] for row in lines[1:]]
+    # Parse values
+    try: values = [int(v) for v in values]
+    except ValueError:
+        try: values = [float(v) for v in values]
+        except ValueError: pass
 else:
     with open(args.infile) as fp:
         values = [l.strip() for l in fp]
